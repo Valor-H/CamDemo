@@ -9,7 +9,7 @@ set(CMAKE_AUTOUIC ON)
 
 # ========== 1. 查找 Qt ==========
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} 5.8 COMPONENTS Core Gui Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} 5.8 COMPONENTS Core Gui Widgets WebEngineWidgets REQUIRED)
 
 # lrelease：生成默认中文 .qm（代码里仍用 tr("English")）
 set(CAMDEMO_TS "${CMAKE_CURRENT_SOURCE_DIR}/translations/CamDemo_zh_CN.ts")
@@ -44,6 +44,8 @@ add_executable(CamDemo
     CamDemo.cpp
     CamDemo.ui
     CamDemo.qrc
+    LoginDialog.h
+    LoginDialog.cpp
 )
 add_dependencies(CamDemo camdemo_zh_qm)
 
@@ -63,6 +65,7 @@ target_link_libraries(CamDemo PUBLIC
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::WebEngineWidgets
 )
 
 # ========== 7. 输出目录（可选）==========

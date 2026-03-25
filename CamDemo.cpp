@@ -3,6 +3,7 @@
 #include "SARibbonCategory.h"
 #include "SARibbonPanel.h"
 #include "SARibbonSystemButtonBar.h"
+#include "LoginDialog.h"
 
 #include <QAbstractButton>
 #include <QIcon>
@@ -63,6 +64,11 @@ void CamDemo::setupWindowUserAvatar()
     avatarBtn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     avatarBtn->setFocusPolicy(Qt::NoFocus);
     bar->addWidget(avatarBtn);
+
+    connect(avatarBtn, &QToolButton::clicked, this, [this]() {
+        LoginDialog dlg(this);
+        dlg.exec();
+    });
 
     QTimer::singleShot(0, this, [bar, avatarBtn]() {
         int rowH = bar->windowTitleHeight();
