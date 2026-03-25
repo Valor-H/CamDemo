@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/CamDemo">
+        <file>resource/avatar.png</file>
+        <file>resource/logo.png</file>
+    </qresource>
+    <qresource prefix="/new/prefix2"/>
+</RCC>
