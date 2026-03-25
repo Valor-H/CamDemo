@@ -17,7 +17,7 @@ LoginDialog::LoginDialog(QWidget* parent)
     layout->addWidget(m_view);
 
     // 测试网址：后续替换成你的登录页
-    m_view->load(QUrl(QStringLiteral("https://example.com")));
+    m_view->load(QUrl(QStringLiteral("http://localhost:5173/")));
 }
 
 LoginDialog::~LoginDialog()

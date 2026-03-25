@@ -32,8 +32,7 @@ add_custom_target(camdemo_zh_qm DEPENDS "${CAMDEMO_QM}")
 
 # ========== 2. 指定 SARibbon 安装目录（必须在 find_package 之前）==========
 # 注意：路径用正斜杠，指向包含 SARibbonBarConfig.cmake 的目录
-set(SARibbonBar_DIR "D:/Codes/SARibbon/bin_qt5.15.2_MSVC_x64/lib/cmake/SARibbonBar")
-
+set(SARibbonBar_DIR "D:/code/SARibbon/bin_qt5.15.2_MSVC_x64/lib/cmake/SARibbonBar")
 # ========== 3. 加载 SARibbonBar ==========
 find_package(SARibbonBar REQUIRED)
 
