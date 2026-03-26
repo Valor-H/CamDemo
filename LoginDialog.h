@@ -14,5 +14,7 @@ public:
 
 private:
     QWebEngineView* m_view { nullptr };
+
+
 };
 
