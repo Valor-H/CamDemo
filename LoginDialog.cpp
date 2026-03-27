@@ -1,25 +1,29 @@
 #include "LoginDialog.h"
 
+#include <cmath>
+
 #include <QVBoxLayout>
-#include <QWebEngineView>
-#include <QUrl>
+
+#include <QCefSetting.h>
+#include <QCefView.h>
 
 LoginDialog::LoginDialog(QWidget* parent)
     : QDialog(parent)
 {
     setWindowTitle(tr("Login"));
-    setFixedSize(800, 1050);
+    setFixedSize(600, 800);
 
     auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    m_view = new QWebEngineView(this);
+    QCefSetting setting;
+    const QString url = QStringLiteral("http://localhost:5173/");
+    m_view = new QCefView(url, &setting, this);
     layout->addWidget(m_view);
-    m_view->setZoomFactor(1.5);
-    // 测试网址：后续替换成你的登录页
-    m_view->load(QUrl(QStringLiteral("http://localhost:5173/")));
+
+    // CEF zoom level: factor ≈ 1.2^level (Chrome-style); ~1.5x ≈ log(1.5)/log(1.2)
+    // m_view->setZoomLevel(std::log(1.5) / std::log(1.2));
 }
 
 LoginDialog::~LoginDialog()
 {}
-

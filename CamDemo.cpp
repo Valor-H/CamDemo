@@ -18,7 +18,7 @@ CamDemo::CamDemo(QWidget *parent)
 {
     ui.setupUi(this);
     setWindowTitle(tr("CamDemo"));
-    setWindowIcon(QIcon(QStringLiteral(":/CamDemo/resource/logo.png")));
+    setWindowIcon(QIcon(QStringLiteral(":/CamDemo/resource/logo.ico")));
     _actionNew = new QAction(QIcon(), tr("New"), this);
     _actionOpen = new QAction(QIcon(), tr("Open"), this);
     _actionSave = new QAction(QIcon(), tr("Save"), this);

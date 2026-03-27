@@ -2,7 +2,7 @@
 
 #include <QDialog>
 
-class QWebEngineView;
+class QCefView;
 
 class LoginDialog : public QDialog
 {
@@ -13,8 +13,5 @@ public:
     ~LoginDialog() override;
 
 private:
-    QWebEngineView* m_view { nullptr };
-
-
+    QCefView* m_view { nullptr };
 };
-
