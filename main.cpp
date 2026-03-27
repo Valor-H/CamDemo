@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
 
     QCefContext cefContext(&app, argc, argv, &config);
 
+    // 在应用启动时加载中文翻译；若缺失 .qm 则保持英文原文。
     QTranslator appTr;
     const QString qmDir = QCoreApplication::applicationDirPath() + QStringLiteral("/translations");
     if (appTr.load(QStringLiteral("CamDemo_zh_CN"), qmDir)) {

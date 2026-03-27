@@ -2,7 +2,9 @@
 
 #include "SARibbonMainWindow.h"
 #include "ui_CamDemo.h"
+#include <QString>
 #include <QToolButton>
+#include <QVariantMap>
 class CamDemo : public SARibbonMainWindow
 {
     Q_OBJECT
@@ -17,6 +19,12 @@ private:
     void UpdateLoginButtonState();
     void OnShowLoginDialog();
     void OnShowMenu();
+    void OnLogout();
+    void OnLoginSucceeded(const QVariantMap& payload);
+    void InitLoginStateFromToken();
+    void ClearWebAuthToken();
+    void DisposeTokenProbeView();
+    void ApplyUserInfoFromMap(const QVariantMap& data);
     Ui::CamDemoClass ui;
     QAction* _actionNew;
     QAction* _actionOpen;
@@ -26,6 +34,9 @@ private:
     QAction* _personalAccountAction;
     QAction* _feedbackAction;
     QAction* _exitAction;
+    QString _displayName;
     bool _isLoggedIn;
+    class QCefView* _tokenProbeView;
+    bool _tokenProbePending;
 };
 

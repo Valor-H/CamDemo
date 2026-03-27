@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 # ========== 1. 查找 Qt ==========
 set(CMAKE_PREFIX_PATH "D:/Tools/QT5/5.15.2/msvc2019_64")
-find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets LinguistTools REQUIRED)
 
 # ========== 2. 集成预编译的 QCefView（关键修正）==========
 set(QCEF_BUILD_ROOT "D:/Codes/QCefView/build")
@@ -63,6 +63,15 @@ add_executable(CamDemo WIN32
     LoginDialog.cpp
 )
 
+# ========== 4.1 生成 Qt 翻译文件（.qm）==========
+# 运行时 main.cpp 从 <exe>/translations 加载 CamDemo_zh_CN.qm。
+set(CAMDEMO_TS_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/translations/CamDemo_zh_CN.ts
+)
+qt5_add_translation(CAMDEMO_QM_FILES ${CAMDEMO_TS_FILES})
+add_custom_target(CamDemoTranslations ALL DEPENDS ${CAMDEMO_QM_FILES})
+add_dependencies(CamDemo CamDemoTranslations)
+
 # ========== 5. 链接库 ==========
 target_link_libraries(CamDemo PUBLIC
     SARibbonBar::SARibbonBar
@@ -82,6 +91,11 @@ if(CMAKE_CONFIGURATION_TYPES)
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${QCEF_BUILD_ROOT}/output/$(Configuration)/bin"
             "$<TARGET_FILE_DIR:CamDemo>"
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            "$<TARGET_FILE_DIR:CamDemo>/translations"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CAMDEMO_QM_FILES}
+            "$<TARGET_FILE_DIR:CamDemo>/translations"
         COMMENT "Auto-copy QCefView runtime to output directory"
     )
 else()
@@ -96,6 +110,11 @@ else()
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${QCEF_COPY_FROM}"
             "$<TARGET_FILE_DIR:CamDemo>"
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            "$<TARGET_FILE_DIR:CamDemo>/translations"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CAMDEMO_QM_FILES}
+            "$<TARGET_FILE_DIR:CamDemo>/translations"
         COMMENT "Auto-copy QCefView runtime to output directory"
     )
 endif()
