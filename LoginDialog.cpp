@@ -11,7 +11,7 @@ LoginDialog::LoginDialog(QWidget* parent)
     : QDialog(parent)
 {
     setWindowTitle(tr("Login"));
-    setFixedSize(600, 800);
+    setFixedSize(450, 650);
 
     auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
