@@ -1,5 +1,7 @@
 #include "LoginDialog.h"
 
+#include "DesktopWeb.h"
+
 #include <QUrl>
 #include <QUrlQuery>
 #include <QVariantList>
@@ -13,22 +15,22 @@ namespace
 QVariantMap SanitizeLoginPayload(const QVariantMap& input)
 {
     QVariantMap sanitized;
-    // 登录主链路：明确保留 token，供主窗口直接建立登录态。
+    // 登录主链路：保留 token + user（对象），避免平铺字段导致协议膨胀。
     sanitized.insert(QStringLiteral("token"), input.value(QStringLiteral("token")).toString());
-    if (input.contains(QStringLiteral("nickName"))) {
-        sanitized.insert(QStringLiteral("nickName"), input.value(QStringLiteral("nickName")).toString());
-    }
-    if (input.contains(QStringLiteral("userName"))) {
-        sanitized.insert(QStringLiteral("userName"), input.value(QStringLiteral("userName")).toString());
-    }
-    if (input.contains(QStringLiteral("username"))) {
-        sanitized.insert(QStringLiteral("username"), input.value(QStringLiteral("username")).toString());
-    }
-    if (input.contains(QStringLiteral("userId"))) {
-        sanitized.insert(QStringLiteral("userId"), input.value(QStringLiteral("userId")).toString());
-    }
-    if (input.contains(QStringLiteral("loginAt"))) {
-        sanitized.insert(QStringLiteral("loginAt"), input.value(QStringLiteral("loginAt")).toString());
+
+    const QVariantMap user = input.value(QStringLiteral("user")).toMap();
+    if (!user.isEmpty()) {
+        // 字段名与后端 Java 实体保持一致：uuid/userName/nickName/email/phone/sex/avatar/role
+        QVariantMap u;
+        u.insert(QStringLiteral("uuid"), user.value(QStringLiteral("uuid")).toString());
+        u.insert(QStringLiteral("userName"), user.value(QStringLiteral("userName")).toString());
+        u.insert(QStringLiteral("nickName"), user.value(QStringLiteral("nickName")).toString());
+        u.insert(QStringLiteral("email"), user.value(QStringLiteral("email")).toString());
+        u.insert(QStringLiteral("phone"), user.value(QStringLiteral("phone")).toString());
+        u.insert(QStringLiteral("sex"), user.value(QStringLiteral("sex")).toInt());
+        u.insert(QStringLiteral("avatar"), user.value(QStringLiteral("avatar")).toString());
+        u.insert(QStringLiteral("role"), user.value(QStringLiteral("role")).toInt());
+        sanitized.insert(QStringLiteral("user"), u);
     }
     return sanitized;
 }
@@ -77,12 +79,7 @@ LoginDialog::~LoginDialog()
 
 QString LoginDialog::BuildDesktopLoginUrl() const
 {
-    // Keep default URL compatible with existing local front-end dev workflow.
-    QUrl url(QStringLiteral("http://localhost:5173/"));
-    QUrlQuery query(url);
-    query.addQueryItem(QStringLiteral("client"), QStringLiteral("desktop"));
-    url.setQuery(query);
-    return url.toString();
+    return DesktopWeb::BuildDesktopLoginUrl();
 }
 
 bool LoginDialog::IsTrustedInvokeSource() const
@@ -100,50 +97,21 @@ bool LoginDialog::IsTrustedInvokeSource() const
     }
 
     const QUrlQuery query(m_currentUrl);
-    return query.queryItemValue(QStringLiteral("client")) == QStringLiteral("desktop");
+    return query.queryItemValue(DesktopWeb::DesktopClientQueryKey()) == DesktopWeb::DesktopClientQueryValue();
 }
 
 void LoginDialog::InjectDesktopBridgeScript()
 {
-    // 兜底防回归：桌面登录窗内禁止跳转到 /files，避免登录成功后页面闪跳。
+    // 桥接注入（单一职责）：
+    // - 前端调用 window.__CAMDEMO_QT__.onLoginSuccess(payload)
+    // - 这里将其转发到 C++：CallBridge.invoke('CamDemo.OnLoginSuccess', payload)
+    //
+    // 说明：/files 跳转拦截由前端桌面嵌入逻辑负责（减少重复与维护点）。
     static const QString kBridgeScript = QStringLiteral(R"JS(
       (function() {
         if (window.__CAMDEMO_QT__ && window.__CAMDEMO_QT__.__ready) {
           return;
         }
-        const BLOCK_PATH = '/files';
-        const getPath = function(input) {
-          try {
-            const u = new URL(input, window.location.origin);
-            return u.pathname;
-          } catch (e) {
-            return '';
-          }
-        };
-        const isBlockedPath = function(path) {
-          return path === BLOCK_PATH || path.indexOf(BLOCK_PATH + '/') === 0;
-        };
-        const fallbackToLogin = function() {
-          const current = window.location.pathname;
-          if (isBlockedPath(current)) {
-            const search = window.location.search || '';
-            history.replaceState(history.state, '', '/login' + search);
-          }
-        };
-        const wrapHistoryMethod = function(name) {
-          const raw = history[name];
-          history[name] = function(state, title, url) {
-            if (typeof url === 'string' && isBlockedPath(getPath(url))) {
-              return null;
-            }
-            return raw.apply(this, arguments);
-          };
-        };
-        wrapHistoryMethod('pushState');
-        wrapHistoryMethod('replaceState');
-        window.addEventListener('popstate', fallbackToLogin);
-        window.addEventListener('hashchange', fallbackToLogin);
-        fallbackToLogin();
         window.__CAMDEMO_QT__ = {
           __ready: true,
           onLoginSuccess: function(payload) {
