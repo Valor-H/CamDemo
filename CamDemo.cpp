@@ -229,7 +229,7 @@ void CamDemo::ClearWebAuthToken()
                       }
                       try {
                         if (window.CallBridge && typeof window.CallBridge.invoke === 'function') {
-                          window.CallBridge.invoke('CamDemo.TokenCleared', { ok, error });
+                          window.CallBridge.invoke('Desktop.TokenCleared', { ok, error });
                         }
                       } catch (e) {
                         // ignore
@@ -250,7 +250,7 @@ void CamDemo::ClearWebAuthToken()
             &QCefView::invokeMethod,
             this,
             [this](const QCefBrowserId&, const QCefFrameId&, const QString& method, const QVariantList& arguments) {
-                if (method != QStringLiteral("CamDemo.TokenCleared") || !_tokenClearPending) {
+                if (method != QStringLiteral("Desktop.TokenCleared") || !_tokenClearPending) {
                     return;
                 }
                 QVariantMap data;
@@ -278,7 +278,7 @@ void CamDemo::InitLoginStateFromToken()
     _tokenProbeView->hide();
 
     // 启动时读取 CEF 内 localStorage 的 auth_token；executeJavascriptWithResult 在本环境不可靠，
-    // 故由页面脚本通过 CallBridge.invoke('CamDemo.InitUserProbe', payload) 主动回传。
+    // 故由页面脚本通过 CallBridge.invoke('Desktop.InitUserProbe', payload) 主动回传。
     connect(_tokenProbeView,
             &QCefView::loadEnd,
             this,
@@ -359,7 +359,7 @@ void CamDemo::InitLoginStateFromToken()
 
                       try {
                         if (window.CallBridge && typeof window.CallBridge.invoke === 'function') {
-                          window.CallBridge.invoke('CamDemo.InitUserProbe', payload);
+                          window.CallBridge.invoke('Desktop.InitUserProbe', payload);
                         }
                       } catch (e) {
                         /* 桥接失败时无 Qt 回调，保持静默；界面保持未登录 */
@@ -373,7 +373,7 @@ void CamDemo::InitLoginStateFromToken()
             &QCefView::invokeMethod,
             this,
             [this](const QCefBrowserId&, const QCefFrameId&, const QString& method, const QVariantList& arguments) {
-                if (method != QStringLiteral("CamDemo.InitUserProbe") || !_tokenProbePending) {
+                if (method != QStringLiteral("Desktop.InitUserProbe") || !_tokenProbePending) {
                     return;
                 }
                 QVariantMap data;

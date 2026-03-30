@@ -103,20 +103,20 @@ bool LoginDialog::IsTrustedInvokeSource() const
 void LoginDialog::InjectDesktopBridgeScript()
 {
     // 桥接注入（单一职责）：
-    // - 前端调用 window.__CAMDEMO_QT__.onLoginSuccess(payload)
-    // - 这里将其转发到 C++：CallBridge.invoke('CamDemo.OnLoginSuccess', payload)
+    // - 前端调用 window.__DESKTOP_QT__.onLoginSuccess(payload)
+    // - 这里将其转发到 C++：CallBridge.invoke('Desktop.OnLoginSuccess', payload)
     //
     // 说明：/files 跳转拦截由前端桌面嵌入逻辑负责（减少重复与维护点）。
     static const QString kBridgeScript = QStringLiteral(R"JS(
       (function() {
-        if (window.__CAMDEMO_QT__ && window.__CAMDEMO_QT__.__ready) {
+        if (window.__DESKTOP_QT__ && window.__DESKTOP_QT__.__ready) {
           return;
         }
-        window.__CAMDEMO_QT__ = {
+        window.__DESKTOP_QT__ = {
           __ready: true,
           onLoginSuccess: function(payload) {
             if (window.CallBridge && typeof window.CallBridge.invoke === 'function') {
-              window.CallBridge.invoke('CamDemo.OnLoginSuccess', payload || {});
+              window.CallBridge.invoke('Desktop.OnLoginSuccess', payload || {});
               return true;
             }
             return false;
@@ -177,7 +177,7 @@ void LoginDialog::OnLoadEnd(int httpStatusCode)
 
 void LoginDialog::OnInvokeMethod(const QString& method, const QVariantList& arguments)
 {
-    if (method != QStringLiteral("CamDemo.OnLoginSuccess")) {
+    if (method != QStringLiteral("Desktop.OnLoginSuccess")) {
         return;
     }
     if (!IsTrustedInvokeSource()) {
