@@ -30,6 +30,8 @@ private:
     bool IsTrustedInvokeSource() const;
     void InjectDesktopBridgeScript();
     void HandleLoginSuccess(const QVariantMap& payload);
+    /** 根据当前可信 URL 路径同步对话框标题（登录 / 注册 / 重置密码） */
+    void SyncWindowTitleFromCurrentUrl();
 
     QCefView* m_view { nullptr };
     QUrl m_currentUrl;

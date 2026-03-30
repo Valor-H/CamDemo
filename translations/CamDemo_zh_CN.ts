@@ -54,5 +54,13 @@
         <source>Login</source>
         <translation>登录</translation>
     </message>
+    <message>
+        <source>Register</source>
+        <translation>注册</translation>
+    </message>
+    <message>
+        <source>Reset password</source>
+        <translation>重置密码</translation>
+    </message>
 </context>
 </TS>

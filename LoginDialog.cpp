@@ -137,6 +137,33 @@ void LoginDialog::HandleLoginSuccess(const QVariantMap& payload)
 void LoginDialog::OnAddressChanged(const QString& url)
 {
     m_currentUrl = QUrl(url);
+    if (!IsTrustedInvokeSource()) {
+        return;
+    }
+    SyncWindowTitleFromCurrentUrl();
+}
+
+void LoginDialog::SyncWindowTitleFromCurrentUrl()
+{
+    const QString path = m_currentUrl.path();
+    // 根路径或重定向前：与 /login 同属登录流程
+    if (path.isEmpty() || path == QLatin1Char('/')) {
+        setWindowTitle(tr("Login"));
+        return;
+    }
+    if (path == QStringLiteral("/login")) {
+        setWindowTitle(tr("Login"));
+        return;
+    }
+    if (path == QStringLiteral("/register")) {
+        setWindowTitle(tr("Register"));
+        return;
+    }
+    if (path == QStringLiteral("/reset-password")) {
+        setWindowTitle(tr("Reset password"));
+        return;
+    }
+    setWindowTitle(tr("Login"));
 }
 
 void LoginDialog::OnLoadEnd(int httpStatusCode)
