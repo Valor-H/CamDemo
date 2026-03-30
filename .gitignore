@@ -1,5 +1,6 @@
 # --- 构建输出（CMake / Visual Studio）---
 build/
+build_verify/
 out/
 cmake-build-*/
 [Bb]uild-*/

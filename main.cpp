@@ -5,6 +5,7 @@
 #include <QStandardPaths>
 #include <QTranslator>
 #include <QtWidgets/QApplication>
+#include <QColor>
 
 #include <QCefConfig.h>
 #include <QCefContext.h>
@@ -28,6 +29,8 @@ int main(int argc, char *argv[])
     config.setWindowlessRenderingEnabled(true);
     config.setStandaloneMessageLoopEnabled(true);
     config.setSandboxDisabled(true);
+    // 设置 CEF 默认背景为白色，避免 windowless 首帧未渲染时出现黑底闪烁。
+    config.setBackgroundColor(QColor(Qt::white));
 
 #if defined(Q_OS_WIN) || defined(Q_OS_LINUX)
     const QString appDir = QCoreApplication::applicationDirPath();
