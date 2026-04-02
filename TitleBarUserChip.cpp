@@ -20,7 +20,7 @@
 namespace
 {
 constexpr int kLabelFontPx = 12;
-constexpr char kNoLoginAvatarRes[] = ":/CamDemo/resource/no-login-avatar.png";
+constexpr char kNeutralAvatarRes[] = ":/CamDemo/resource/avatar.png";
 const QUrl kBackendBaseUrl(QStringLiteral("http://localhost:8080/"));
 
 /** 昵称区排版一致，仅颜色区分未登录 / 已登录 */
@@ -94,8 +94,8 @@ void TitleBarUserChip::applyLoggedOutAppearance()
 {
     _fallbackNickName.clear();
     _fallbackUserName.clear();
-    const QPixmap ph = loadAvatarRaster(kNoLoginAvatarRes, TitleBarUserChip::kAvatarSide * 2);
-    _avatarLabel->setPixmap(makeCircularPlaceholder(ph));
+    const QPixmap ph = loadAvatarRaster(kNeutralAvatarRes, TitleBarUserChip::kAvatarSide * 2);
+    _avatarLabel->setPixmap(makeCircularAvatarWithRing(ph));
     _avatarLabel->setStyleSheet(QStringLiteral("QLabel { background: transparent; border: none; }"));
     _nameLabel->setStyleSheet(nameLabelStyleSheet(QStringLiteral("#999999")));
     _nameLabel->ensurePolished();
@@ -110,27 +110,31 @@ void TitleBarUserChip::applyLoggedInAppearance(const UserSession* session)
     const QString userName = u.value(QStringLiteral("userName")).toString().trimmed();
     _fallbackNickName = nick;
     _fallbackUserName = userName;
-    // 启动阶段用户信息由 Qt 直连后端拉取，昵称为空时不显示中间态文案。
-    const QString fullName = nick;
     _nameLabel->setStyleSheet(nameLabelStyleSheet(QStringLiteral("#333333")));
     _nameLabel->ensurePolished();
-    _nameLabel->setText(elideToNameWidth(fullName, _nameLabel->font()));
-    _nameLabel->setToolTip(fullName.isEmpty() ? QString() : fullName);
+    _nameLabel->setText(elideToNameWidth(nick, _nameLabel->font()));
+    _nameLabel->setToolTip(nick.isEmpty() ? QString() : nick);
 
     _avatarLabel->setStyleSheet(QStringLiteral("QLabel { background: transparent; border: none; }"));
 
+    const QPixmap loggedInPlaceholder = makeCircularAvatarWithRing(
+        loadAvatarRaster(kNeutralAvatarRes, TitleBarUserChip::kAvatarSide * 2));
+
     const QString raw = u.value(QStringLiteral("avatar")).toString().trimmed();
     if (raw.isEmpty()) {
-        _avatarLabel->setPixmap(makeInitialAvatarWithRing(nick, userName));
+        // 登录后的短暂中间态（资料尚未回填）使用中性占位，避免首字符头像一闪而过。
+        _avatarLabel->setPixmap(loggedInPlaceholder);
         return;
     }
 
     const QUrl url = resolveAvatarUrl(raw);
     if (!url.isValid()) {
-        _avatarLabel->setPixmap(makeInitialAvatarWithRing(nick, userName));
+        _avatarLabel->setPixmap(loggedInPlaceholder);
         return;
     }
 
+    // 下载中先保持中性占位，待成功后替换为真实头像；失败再回退首字符头像。
+    _avatarLabel->setPixmap(loggedInPlaceholder);
     _avatarReply = _nam->get(QNetworkRequest(url));
 }
 
@@ -203,27 +207,6 @@ QPixmap TitleBarUserChip::loadAvatarRaster(const char* resourcePath, int side)
         return px;
     }
     return loaded.scaled(side, side, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-}
-
-QPixmap TitleBarUserChip::makeCircularPlaceholder(const QPixmap& source) const
-{
-    const int side = TitleBarUserChip::kAvatarSide;
-    QPixmap out(side, side);
-    out.fill(Qt::transparent);
-    QPainter painter(&out);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    QPainterPath clip;
-    clip.addEllipse(0, 0, side, side);
-    painter.setClipPath(clip);
-    painter.fillRect(0, 0, side, side, QColor(QStringLiteral("#E0E0E0")));
-    if (!source.isNull()) {
-        const QPixmap scaled = source.scaled(side, side, Qt::KeepAspectRatioByExpanding,
-                                             Qt::SmoothTransformation);
-        const int x = (side - scaled.width()) / 2;
-        const int y = (side - scaled.height()) / 2;
-        painter.drawPixmap(x, y, scaled);
-    }
-    return out;
 }
 
 QPixmap TitleBarUserChip::makeCircularAvatarWithRing(const QPixmap& source) const

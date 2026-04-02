@@ -3,6 +3,7 @@
 #include "SARibbonMainWindow.h"
 #include "ui_CamDemo.h"
 #include "UserSession.h"
+#include <QElapsedTimer>
 #include <QVariantMap>
 
 class AuthHttpClient;
@@ -18,6 +19,9 @@ class CamDemo : public SARibbonMainWindow
 public:
     CamDemo(QWidget* parent = nullptr);
     ~CamDemo();
+
+protected:
+    bool event(QEvent* e) override;
 
 private slots:
     void RefreshUserChipFromSession();
@@ -40,6 +44,8 @@ private:
     void ClearAuthTokenFromSettings();
     void OnOpenPersonalProfile();
     void OnOpenSettingsPlaceholder();
+    void ScheduleWindowActivateRefresh();
+    void TryRefreshUserProfileOnWindowActivate();
 
     Ui::CamDemoClass ui;
     QAction* _actionNew;
@@ -52,4 +58,7 @@ private:
     QAction* _settingsAction { nullptr };
     QAction* _logoutAction { nullptr };
     AuthHttpClient* _authClient { nullptr };
+    QTimer* _windowActivateRefreshDebounceTimer { nullptr };
+    QElapsedTimer _lastWindowActivateRefreshAt;
+    bool _userHydrationInFlight { false };
 };
