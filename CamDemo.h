@@ -35,10 +35,9 @@ private:
     void StartDirectUserHydration(const QString& token, bool allowRefresh);
     void FetchCurrentUserDirect(const QString& token, bool allowRefresh);
     void RefreshTokenDirectAndRetry(const QString& token);
-    void ClearWebAuthToken();
-    void DisposeTokenProbeView();
-    void ApplyUserInfoFromMap(const QVariantMap& data);
-    void OnTokenCleared(const QVariantMap& data);
+    void SaveAuthTokenToSettings(const QString& token);
+    QString LoadAuthTokenFromSettings() const;
+    void ClearAuthTokenFromSettings();
     void OnOpenPersonalProfile();
     void OnOpenSettingsPlaceholder();
 
@@ -53,7 +52,4 @@ private:
     QAction* _settingsAction { nullptr };
     QAction* _logoutAction { nullptr };
     AuthHttpClient* _authClient { nullptr };
-    class QCefView* _tokenProbeView { nullptr };
-    bool _tokenProbePending { false };
-    bool _tokenClearPending { false };
 };

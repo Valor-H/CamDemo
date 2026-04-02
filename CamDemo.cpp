@@ -15,14 +15,20 @@
 #include <QIcon>
 #include <QMenu>
 #include <QMessageBox>
+#include <QSettings>
 #include <QSizePolicy>
 #include <QTimer>
 #include <QVariantList>
 #include <QWidget>
 
-#include <QCefSetting.h>
-#include <QCefView.h>
 #include <QDesktopServices>
+
+namespace
+{
+const QString kSettingsOrg = QStringLiteral("QianJiZN");
+const QString kSettingsApp = QStringLiteral("CamDemo");
+const QString kAuthTokenKey = QStringLiteral("auth/token");
+}
 
 CamDemo::CamDemo(QWidget* parent)
     : SARibbonMainWindow(parent)
@@ -42,7 +48,6 @@ CamDemo::CamDemo(QWidget* parent)
     connect(&_userSession, &UserSession::userProfileChanged, this, &CamDemo::RefreshUserChipFromSession);
     RefreshUserChipFromSession();
     InitLoginStateFromToken();
-    _tokenClearPending = false;
 }
 
 CamDemo::~CamDemo()
@@ -145,13 +150,14 @@ void CamDemo::OnShowAccountMenu()
 void CamDemo::OnLogout()
 {
     _authClient->cancelAll();
+    ClearAuthTokenFromSettings();
     _userSession.logout();
-    ClearWebAuthToken();
 }
 
 void CamDemo::OnLoginSucceeded(const QVariantMap& payload)
 {
     _authClient->cancelAll();
+    SaveAuthTokenToSettings(payload.value(QStringLiteral("token")).toString());
     _userSession.applyFromLoginPayload(payload);
 }
 
@@ -197,8 +203,8 @@ void CamDemo::FetchCurrentUserDirect(const QString& token, bool allowRefresh)
 
             if (resp.bizCode == 401) {
                 _authClient->cancelAll();
+                ClearAuthTokenFromSettings();
                 _userSession.logout();
-                ClearWebAuthToken();
             }
         });
 }
@@ -219,162 +225,50 @@ void CamDemo::RefreshTokenDirectAndRetry(const QString& token)
 
             if (resp.bizCode == 401) {
                 _authClient->cancelAll();
+                ClearAuthTokenFromSettings();
                 _userSession.logout();
-                ClearWebAuthToken();
             }
         });
 }
 
-void CamDemo::ClearWebAuthToken()
+void CamDemo::SaveAuthTokenToSettings(const QString& token)
 {
-    DisposeTokenProbeView();
-    _tokenProbePending = false;
-    _tokenClearPending = true;
-
-    QCefSetting setting;
-    const QString loginUrl = DesktopWeb::BuildDesktopLoginUrl();
-    _tokenProbeView = new QCefView(loginUrl, &setting, this);
-    _tokenProbeView->hide();
-
-    connect(_tokenProbeView,
-            &QCefView::loadEnd,
-            this,
-            [this, loginUrl](const QCefBrowserId&, const QCefFrameId&, bool isMainFrame, int) {
-                if (!isMainFrame || !_tokenProbeView) {
-                    return;
-                }
-                static const QString kScript = QStringLiteral(R"JS(
-                    (() => {
-                      let ok = false;
-                      let error = '';
-                      try {
-                        if (window.localStorage) {
-                          window.localStorage.removeItem('auth_token');
-                          ok = true;
-                        }
-                      } catch (e) {
-                        error = e && e.message ? String(e.message) : String(e);
-                      }
-                      try {
-                        if (window.CallBridge && typeof window.CallBridge.invoke === 'function') {
-                          window.CallBridge.invoke('Desktop.TokenCleared', { ok, error });
-                        }
-                      } catch (e) {
-                      }
-                    })();
-                )JS");
-                _tokenProbeView->executeJavascript(QCefView::MainFrameID, kScript, loginUrl);
-                QTimer::singleShot(1500, this, [this]() {
-                    if (_tokenClearPending) {
-                        _tokenClearPending = false;
-                        DisposeTokenProbeView();
-                    }
-                });
-            });
-
-    connect(_tokenProbeView,
-            &QCefView::invokeMethod,
-            this,
-            [this](const QCefBrowserId&, const QCefFrameId&, const QString& method, const QVariantList& arguments) {
-                if (method != QStringLiteral("Desktop.TokenCleared") || !_tokenClearPending) {
-                    return;
-                }
-                QVariantMap data;
-                if (!arguments.isEmpty()) {
-                    data = arguments.front().toMap();
-                }
-                _tokenClearPending = false;
-                OnTokenCleared(data);
-                DisposeTokenProbeView();
-            });
+    QSettings settings(kSettingsOrg, kSettingsApp);
+    const QString trimmed = token.trimmed();
+    if (trimmed.isEmpty()) {
+        settings.remove(kAuthTokenKey);
+    } else {
+        settings.setValue(kAuthTokenKey, trimmed);
+    }
+    settings.sync();
 }
 
 void CamDemo::InitLoginStateFromToken()
 {
-    if (_tokenProbePending) {
+    const QString token = LoadAuthTokenFromSettings();
+    if (token.isEmpty()) {
         return;
     }
-    _tokenProbePending = true;
-    DisposeTokenProbeView();
-    _tokenClearPending = false;
 
-    QCefSetting setting;
-    const QString loginUrl = DesktopWeb::BuildDesktopLoginUrl();
-    _tokenProbeView = new QCefView(loginUrl, &setting, this);
-    _tokenProbeView->hide();
-
-    connect(_tokenProbeView,
-            &QCefView::loadEnd,
-            this,
-            [this, loginUrl](const QCefBrowserId&, const QCefFrameId&, bool isMainFrame, int) {
-                if (!isMainFrame || !_tokenProbeView) {
-                    return;
-                }
-                static const QString kScript = QStringLiteral(R"JS(
-                    (() => {
-                      let storage = null;
-                      try {
-                        storage = window.localStorage;
-                      } catch (e) {
-                        storage = null;
-                      }
-                      const token = storage ? (storage.getItem('auth_token') || '') : '';
-
-                      // 启动恢复时只读取 token；Qt 侧将直连后端拉取最新用户信息。
-                      // 这样可以确保头像等字段始终是最新的，避免缓存过期问题。
-                      const payload = {
-                        token: token,
-                        loggedIn: !!token
-                      };
-
-                      try {
-                        if (window.CallBridge && typeof window.CallBridge.invoke === 'function') {
-                          window.CallBridge.invoke('Desktop.InitUserProbe', payload);
-                        }
-                      } catch (e) {
-                      }
-                    })();
-                )JS");
-                _tokenProbeView->executeJavascript(QCefView::MainFrameID, kScript, loginUrl);
-            });
-
-    connect(_tokenProbeView,
-            &QCefView::invokeMethod,
-            this,
-            [this](const QCefBrowserId&, const QCefFrameId&, const QString& method, const QVariantList& arguments) {
-                // 启动恢复步骤：
-                // 1. 收到 Desktop.InitUserProbe（仅 token）=> 应用 token
-                // 2. Qt 直连 Java /api/user/current 拉取用户信息（必要时 refresh）
-                if (method == QStringLiteral("Desktop.InitUserProbe") && _tokenProbePending) {
-                    QVariantMap data;
-                    if (!arguments.isEmpty()) {
-                        data = arguments.front().toMap();
-                    }
-                    // 启动恢复仅依赖 token 探测；用户信息由 Qt 直连后端获取。
-                    const QString token = data.value(QStringLiteral("token")).toString().trimmed();
-                    if (!token.isEmpty()) {
-                        _userSession.applyFromProbe(data);
-                        RefreshUserChipFromSession();
-                        _tokenProbePending = false;
-                        DisposeTokenProbeView();
-                        StartDirectUserHydration(token, true);
-                    } else {
-                        // 没有token，直接清理
-                        _tokenProbePending = false;
-                        DisposeTokenProbeView();
-                    }
-                    return;
-                }
-            });
+    QVariantMap data;
+    data.insert(QStringLiteral("token"), token);
+    data.insert(QStringLiteral("loggedIn"), true);
+    _userSession.applyFromProbe(data);
+    RefreshUserChipFromSession();
+    StartDirectUserHydration(token, true);
 }
 
-void CamDemo::DisposeTokenProbeView()
+QString CamDemo::LoadAuthTokenFromSettings() const
 {
-    if (!_tokenProbeView) {
-        return;
-    }
-    _tokenProbeView->deleteLater();
-    _tokenProbeView = nullptr;
+    QSettings settings(kSettingsOrg, kSettingsApp);
+    return settings.value(kAuthTokenKey).toString().trimmed();
+}
+
+void CamDemo::ClearAuthTokenFromSettings()
+{
+    QSettings settings(kSettingsOrg, kSettingsApp);
+    settings.remove(kAuthTokenKey);
+    settings.sync();
 }
 
 void CamDemo::OnOpenPersonalProfile()
@@ -390,14 +284,4 @@ void CamDemo::OnOpenPersonalProfile()
 void CamDemo::OnOpenSettingsPlaceholder()
 {
     QMessageBox::information(this, tr("Settings"), tr("Settings page is not available yet."));
-}
-
-void CamDemo::ApplyUserInfoFromMap(const QVariantMap& data)
-{
-    _userSession.applyFromProbe(data);
-}
-
-void CamDemo::OnTokenCleared(const QVariantMap& data)
-{
-    Q_UNUSED(data);
 }
