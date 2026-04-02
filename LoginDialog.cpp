@@ -99,7 +99,7 @@ LoginDialog::LoginDialog(QWidget* parent)
     setWindowTitle(tr("Login"));
 
     // 固定窗口尺寸：项目开发阶段不考虑兼容与自适应，去掉登录/注册/重置路由切换带来的 resize 逻辑。
-    setFixedSize(450, 500);
+    setFixedSize(450, 550);
     // 窗口级渐显：避免 CEF 首帧未就绪时露出黑底。
     setWindowOpacity(0.0);
 

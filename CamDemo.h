@@ -2,23 +2,31 @@
 
 #include "SARibbonMainWindow.h"
 #include "ui_CamDemo.h"
-#include <QString>
-#include <QToolButton>
+#include "UserSession.h"
 #include <QVariantMap>
+
+class TitleBarUserChip;
+class QAction;
+class QMenu;
+
 class CamDemo : public SARibbonMainWindow
 {
     Q_OBJECT
 
 public:
-    CamDemo(QWidget *parent = nullptr);
+    CamDemo(QWidget* parent = nullptr);
     ~CamDemo();
+
+private slots:
+    void RefreshUserChipFromSession();
 
 private:
     void InitRibbonBar();
-    void InitWindowLoginButton();
-    void UpdateLoginButtonState();
+    void InitUserChip();
+    /** 标题栏高度与布局链同步（探测登录后 sizeHint 变化时需 invalidate，否则控件几何错误） */
+    void SyncUserChipIntoTitleBar();
     void OnShowLoginDialog();
-    void OnShowMenu();
+    void OnShowAccountMenu();
     void OnLogout();
     void OnLoginSucceeded(const QVariantMap& payload);
     void InitLoginStateFromToken();
@@ -26,21 +34,20 @@ private:
     void DisposeTokenProbeView();
     void ApplyUserInfoFromMap(const QVariantMap& data);
     void OnTokenCleared(const QVariantMap& data);
+    void OnOpenPersonalProfile();
+    void OnOpenSettingsPlaceholder();
+
     Ui::CamDemoClass ui;
     QAction* _actionNew;
     QAction* _actionOpen;
     QAction* _actionSave;
-    QToolButton* _loginButton;
-    QMenu* _loginMenu;
-    QAction* _personalAccountAction;
-    QAction* _feedbackAction;
-    QAction* _exitAction;
-    QString _displayName;
-    bool _isLoggedIn;
-    // 当前用户完整信息（字段名与后端 Java 实体保持一致：uuid/userName/nickName/email/phone/sex/avatar/role）
-    QVariantMap _currentUser;
-    class QCefView* _tokenProbeView;
-    bool _tokenProbePending;
-    bool _tokenClearPending;
+    UserSession _userSession;
+    TitleBarUserChip* _userChip { nullptr };
+    QMenu* _loginMenu { nullptr };
+    QAction* _personalCenterAction { nullptr };
+    QAction* _settingsAction { nullptr };
+    QAction* _logoutAction { nullptr };
+    class QCefView* _tokenProbeView { nullptr };
+    bool _tokenProbePending { false };
+    bool _tokenClearPending { false };
 };
-

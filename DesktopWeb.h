@@ -38,5 +38,17 @@ inline QString DesktopClientQueryValue()
 {
     return QStringLiteral("desktop");
 }
+
+/** 外置浏览器打开个人资料页（与前端 query 约定一致，token 由 SPA 首屏消费后从地址栏移除） */
+inline QUrl BuildPersonalProfileUrl(const QString& authToken)
+{
+    QUrl url = BuildDesktopBaseUrl().resolved(QUrl(QStringLiteral("personalProfile/personal")));
+    if (!authToken.isEmpty()) {
+        QUrlQuery q;
+        q.addQueryItem(QStringLiteral("token"), authToken);
+        url.setQuery(q);
+    }
+    return url;
+}
 } // namespace DesktopWeb
 

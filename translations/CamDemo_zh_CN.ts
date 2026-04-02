@@ -28,24 +28,20 @@
         <translation>主页</translation>
     </message>
     <message>
-        <source>Not logged in</source>
-        <translation>未登录</translation>
+        <source>Personal center</source>
+        <translation>个人中心</translation>
     </message>
     <message>
-        <source>Personal Account</source>
-        <translation>个人账户</translation>
+        <source>Settings</source>
+        <translation>设置</translation>
     </message>
     <message>
-        <source>Feedback</source>
-        <translation>反馈</translation>
+        <source>Log out</source>
+        <translation>退出登录</translation>
     </message>
     <message>
-        <source>Exit</source>
-        <translation>退出</translation>
-    </message>
-    <message>
-        <source>Logged in</source>
-        <translation>已登录</translation>
+        <source>Settings page is not available yet.</source>
+        <translation>设置页面尚未接入。</translation>
     </message>
 </context>
 <context>
@@ -61,6 +57,17 @@
     <message>
         <source>Reset password</source>
         <translation>重置密码</translation>
+    </message>
+</context>
+<context>
+    <name>TitleBarUserChip</name>
+    <message>
+        <source>Not logged in</source>
+        <translation>未登录</translation>
+    </message>
+    <message>
+        <source>Logged in</source>
+        <translation>已登录</translation>
     </message>
 </context>
 </TS>

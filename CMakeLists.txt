@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.12)
 
 # 强制 v142 工具集（与 QCefView 一致）
 if(CMAKE_GENERATOR MATCHES "Visual Studio")
@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 # ========== 1. 查找 Qt ==========
 set(CMAKE_PREFIX_PATH "D:/Tools/QT5/5.15.2/msvc2019_64")
-find_package(Qt5 COMPONENTS Core Gui Widgets LinguistTools REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets Network LinguistTools REQUIRED)
 
 # ========== 2. 集成预编译的 QCefView（关键修正）==========
 set(QCEF_BUILD_ROOT "D:/Codes/QCefView/build")
@@ -53,14 +53,14 @@ set(SARibbonBar_DIR "D:/Codes/SARibbon/bin_qt5.15.2_MSVC_x64/lib/cmake/SARibbonB
 find_package(SARibbonBar REQUIRED)
 
 # ========== 4. 添加源文件 ==========
+# 自动收集当前目录下全部 .cpp / .h；CONFIGURE_DEPENDS 在新增文件时会触发重新配置
+file(GLOB CAMDEMO_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+file(GLOB CAMDEMO_HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 add_executable(CamDemo WIN32
-    main.cpp
-    CamDemo.h
-    CamDemo.cpp
+    ${CAMDEMO_SOURCES}
+    ${CAMDEMO_HEADERS}
     CamDemo.ui
     CamDemo.qrc
-    LoginDialog.h
-    LoginDialog.cpp
 )
 
 # ========== 4.1 生成 Qt 翻译文件（.qm）==========
@@ -78,6 +78,7 @@ target_link_libraries(CamDemo PUBLIC
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
+    Qt5::Network
     QCefView
 )
 
