@@ -39,6 +39,8 @@ private:
     void abortAvatarRequest();
     void applyLoggedOutAppearance();
     void applyLoggedInAppearance(const UserSession* session);
+    QPixmap makeInitialAvatarWithRing(const QString& nickName, const QString& userName) const;
+    static QString pickInitialChar(const QString& nickName, const QString& userName);
     /** 已登录：内圈图 + 2px 白边 */
     QPixmap makeCircularAvatarWithRing(const QPixmap& source) const;
     /** 未登录：灰底圆角占位，无白边 */
@@ -51,5 +53,7 @@ private:
     QNetworkAccessManager* _nam { nullptr };
     QNetworkReply* _avatarReply { nullptr };
     bool _loggedIn { false };
+    QString _fallbackNickName;
+    QString _fallbackUserName;
 };
 

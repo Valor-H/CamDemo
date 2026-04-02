@@ -1,5 +1,4 @@
 #include "TitleBarUserChip.h"
-#include "DesktopWeb.h"
 #include "UserSession.h"
 
 #include <QFontMetrics>
@@ -16,12 +15,13 @@
 #include <QPainterPath>
 #include <QPixmap>
 #include <QUrl>
+#include <QSslSocket>
 
 namespace
 {
 constexpr int kLabelFontPx = 12;
 constexpr char kNoLoginAvatarRes[] = ":/CamDemo/resource/no-login-avatar.png";
-constexpr char kLoginAvatarRes[] = ":/CamDemo/resource/login-avatar.png";
+const QUrl kBackendBaseUrl(QStringLiteral("http://localhost:8080/"));
 
 /** 昵称区排版一致，仅颜色区分未登录 / 已登录 */
 QString nameLabelStyleSheet(const QString& colorHex)
@@ -92,6 +92,8 @@ void TitleBarUserChip::syncFromSession(const UserSession* session)
 
 void TitleBarUserChip::applyLoggedOutAppearance()
 {
+    _fallbackNickName.clear();
+    _fallbackUserName.clear();
     const QPixmap ph = loadAvatarRaster(kNoLoginAvatarRes, TitleBarUserChip::kAvatarSide * 2);
     _avatarLabel->setPixmap(makeCircularPlaceholder(ph));
     _avatarLabel->setStyleSheet(QStringLiteral("QLabel { background: transparent; border: none; }"));
@@ -105,6 +107,9 @@ void TitleBarUserChip::applyLoggedInAppearance(const UserSession* session)
 {
     const QVariantMap u = session->currentUser();
     const QString nick = u.value(QStringLiteral("nickName")).toString().trimmed();
+    const QString userName = u.value(QStringLiteral("userName")).toString().trimmed();
+    _fallbackNickName = nick;
+    _fallbackUserName = userName;
     // 启动阶段用户信息由 Qt 直连后端拉取，昵称为空时不显示中间态文案。
     const QString fullName = nick;
     _nameLabel->setStyleSheet(nameLabelStyleSheet(QStringLiteral("#333333")));
@@ -115,10 +120,14 @@ void TitleBarUserChip::applyLoggedInAppearance(const UserSession* session)
     _avatarLabel->setStyleSheet(QStringLiteral("QLabel { background: transparent; border: none; }"));
 
     const QString raw = u.value(QStringLiteral("avatar")).toString().trimmed();
+    if (raw.isEmpty()) {
+        _avatarLabel->setPixmap(makeInitialAvatarWithRing(nick, userName));
+        return;
+    }
+
     const QUrl url = resolveAvatarUrl(raw);
     if (!url.isValid()) {
-        const QPixmap ph = loadAvatarRaster(kLoginAvatarRes, TitleBarUserChip::kAvatarSide * 2);
-        _avatarLabel->setPixmap(makeCircularAvatarWithRing(ph));
+        _avatarLabel->setPixmap(makeInitialAvatarWithRing(nick, userName));
         return;
     }
 
@@ -130,11 +139,59 @@ QUrl TitleBarUserChip::resolveAvatarUrl(const QString& raw)
     if (raw.isEmpty()) {
         return {};
     }
-    const QUrl u = QUrl::fromUserInput(raw);
+    QUrl u = QUrl::fromUserInput(raw);
     if (u.isRelative()) {
-        return DesktopWeb::BuildDesktopBaseUrl().resolved(u);
+        // 后端通常返回 /profile/... 这类相对路径，应以 Java 服务地址为基准解析。
+        return kBackendBaseUrl.resolved(u);
     }
+
+    // Windows 发布环境若未携带 OpenSSL，Qt 可能无法发起 HTTPS 请求；对 OSS 链接做协议降级兜底。
+    if (u.scheme().compare(QStringLiteral("https"), Qt::CaseInsensitive) == 0
+        && !QSslSocket::supportsSsl()) {
+        u.setScheme(QStringLiteral("http"));
+    }
+
     return u;
+}
+
+QString TitleBarUserChip::pickInitialChar(const QString& nickName, const QString& userName)
+{
+    const QString nick = nickName.trimmed();
+    const QString user = userName.trimmed();
+    QString seed = !nick.isEmpty() ? nick : user;
+    if (seed.isEmpty()) {
+        return QStringLiteral("?");
+    }
+
+    const QChar c = seed.at(0);
+    if (c.isLetter() && c.unicode() <= 0x7F) {
+        return QString(c.toUpper());
+    }
+    return QString(c);
+}
+
+QPixmap TitleBarUserChip::makeInitialAvatarWithRing(const QString& nickName, const QString& userName) const
+{
+    const int side = TitleBarUserChip::kAvatarSide;
+    QPixmap out(side, side);
+    out.fill(Qt::transparent);
+
+    QPainter painter(&out);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(Qt::white);
+    painter.drawEllipse(0, 0, side, side);
+
+    painter.setBrush(QColor(QStringLiteral("#999999")));
+    painter.drawEllipse(2, 2, side - 4, side - 4);
+
+    QFont f = font();
+    f.setBold(true);
+    f.setPixelSize(11);
+    painter.setFont(f);
+    painter.setPen(QColor(Qt::white));
+    painter.drawText(QRect(2, 2, side - 4, side - 4), Qt::AlignCenter, pickInitialChar(nickName, userName));
+    return out;
 }
 
 QPixmap TitleBarUserChip::loadAvatarRaster(const char* resourcePath, int side)
@@ -233,8 +290,7 @@ void TitleBarUserChip::onAvatarDownloadFinished(QNetworkReply* reply)
     reply->deleteLater();
 
     if (loaded.isNull()) {
-        const QPixmap ph = loadAvatarRaster(kLoginAvatarRes, TitleBarUserChip::kAvatarSide * 2);
-        _avatarLabel->setPixmap(makeCircularAvatarWithRing(ph));
+        _avatarLabel->setPixmap(makeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName));
     } else {
         _avatarLabel->setPixmap(makeCircularAvatarWithRing(loaded));
     }
