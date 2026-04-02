@@ -52,9 +52,10 @@ void UserSession::applyFromProbe(const QVariantMap& data)
     }
 
     const QString token = data.value(kTokenKey).toString().trimmed();
-    const QVariantMap user = data.value(kUserKey).toMap();
     _authToken = token;
-    _currentUser = user;
+    // 启动恢复时只有 token，不再从缓存读用户信息
+    // 用户信息由前端根据 token 重新从后端拉取并通过 applyFromLoginPayload 更新
+    _currentUser.clear();
     setAuthenticatedState(true);
     emit userProfileChanged();
 }

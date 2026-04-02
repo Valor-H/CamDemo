@@ -5,6 +5,8 @@
 #include "UserSession.h"
 #include <QVariantMap>
 
+class AuthHttpClient;
+
 class TitleBarUserChip;
 class QAction;
 class QMenu;
@@ -30,6 +32,9 @@ private:
     void OnLogout();
     void OnLoginSucceeded(const QVariantMap& payload);
     void InitLoginStateFromToken();
+    void StartDirectUserHydration(const QString& token, bool allowRefresh);
+    void FetchCurrentUserDirect(const QString& token, bool allowRefresh);
+    void RefreshTokenDirectAndRetry(const QString& token);
     void ClearWebAuthToken();
     void DisposeTokenProbeView();
     void ApplyUserInfoFromMap(const QVariantMap& data);
@@ -47,6 +52,7 @@ private:
     QAction* _personalCenterAction { nullptr };
     QAction* _settingsAction { nullptr };
     QAction* _logoutAction { nullptr };
+    AuthHttpClient* _authClient { nullptr };
     class QCefView* _tokenProbeView { nullptr };
     bool _tokenProbePending { false };
     bool _tokenClearPending { false };

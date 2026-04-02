@@ -8,6 +8,8 @@
 #include "LoginDialog.h"
 #include "DesktopWeb.h"
 
+#include "AuthHttpClient.h"
+
 #include <QAbstractButton>
 #include <QAction>
 #include <QIcon>
@@ -25,6 +27,7 @@
 CamDemo::CamDemo(QWidget* parent)
     : SARibbonMainWindow(parent)
     , _userSession(this)
+    , _authClient(new AuthHttpClient(QStringLiteral("http://localhost:8080"), this))
 {
     ui.setupUi(this);
     setWindowTitle(tr("CamDemo"));
@@ -43,7 +46,11 @@ CamDemo::CamDemo(QWidget* parent)
 }
 
 CamDemo::~CamDemo()
-{}
+{
+    if (_authClient) {
+        _authClient->cancelAll();
+    }
+}
 
 void CamDemo::InitRibbonBar()
 {
@@ -137,13 +144,85 @@ void CamDemo::OnShowAccountMenu()
 
 void CamDemo::OnLogout()
 {
+    _authClient->cancelAll();
     _userSession.logout();
     ClearWebAuthToken();
 }
 
 void CamDemo::OnLoginSucceeded(const QVariantMap& payload)
 {
+    _authClient->cancelAll();
     _userSession.applyFromLoginPayload(payload);
+}
+
+
+void CamDemo::StartDirectUserHydration(const QString& token, bool allowRefresh)
+{
+    const QString trimmed = token.trimmed();
+    if (trimmed.isEmpty()) {
+        return;
+    }
+
+    _authClient->cancelAll();
+    FetchCurrentUserDirect(trimmed, allowRefresh);
+}
+
+void CamDemo::FetchCurrentUserDirect(const QString& token, bool allowRefresh)
+{
+    _authClient->post(QStringLiteral("/api/user/current"), token, 10,
+        [this, token, allowRefresh](const AuthHttpClient::Response& resp) {
+            if (!resp.networkOk) {
+                // 网络失败时保留 token-only，会话稍后可重试。
+                return;
+            }
+
+            if (resp.bizCode == 200) {
+                const QVariantMap userMap = resp.data.value(QStringLiteral("user")).toMap();
+                if (userMap.isEmpty()) {
+                    return;
+                }
+
+                QVariantMap payload;
+                payload.insert(QStringLiteral("token"), token);
+                payload.insert(QStringLiteral("user"), userMap);
+                _userSession.applyFromLoginPayload(payload);
+                RefreshUserChipFromSession();
+                return;
+            }
+
+            if (resp.bizCode == 401 && allowRefresh) {
+                RefreshTokenDirectAndRetry(token);
+                return;
+            }
+
+            if (resp.bizCode == 401) {
+                _authClient->cancelAll();
+                _userSession.logout();
+                ClearWebAuthToken();
+            }
+        });
+}
+
+void CamDemo::RefreshTokenDirectAndRetry(const QString& token)
+{
+    _authClient->post(QStringLiteral("/api/auth/refresh"), token, 10,
+        [this, token](const AuthHttpClient::Response& resp) {
+            if (!resp.networkOk) {
+                // 刷新链路网络失败，保持 token-only，允许后续重试。
+                return;
+            }
+
+            if (resp.bizCode == 200) {
+                FetchCurrentUserDirect(token, false);
+                return;
+            }
+
+            if (resp.bizCode == 401) {
+                _authClient->cancelAll();
+                _userSession.logout();
+                ClearWebAuthToken();
+            }
+        });
 }
 
 void CamDemo::ClearWebAuthToken()
@@ -241,22 +320,12 @@ void CamDemo::InitLoginStateFromToken()
                       }
                       const token = storage ? (storage.getItem('auth_token') || '') : '';
 
+                      // 启动恢复时只读取 token；Qt 侧将直连后端拉取最新用户信息。
+                      // 这样可以确保头像等字段始终是最新的，避免缓存过期问题。
                       const payload = {
                         token: token,
-                        loggedIn: !!token,
-                        user: {}
+                        loggedIn: !!token
                       };
-
-                      try {
-                        const raw = storage ? (storage.getItem('current_user_cache') || '') : '';
-                        if (raw) {
-                          const parsed = JSON.parse(raw);
-                          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-                            payload.user = parsed;
-                          }
-                        }
-                      } catch (e) {
-                      }
 
                       try {
                         if (window.CallBridge && typeof window.CallBridge.invoke === 'function') {
@@ -273,16 +342,29 @@ void CamDemo::InitLoginStateFromToken()
             &QCefView::invokeMethod,
             this,
             [this](const QCefBrowserId&, const QCefFrameId&, const QString& method, const QVariantList& arguments) {
-                if (method != QStringLiteral("Desktop.InitUserProbe") || !_tokenProbePending) {
+                // 启动恢复步骤：
+                // 1. 收到 Desktop.InitUserProbe（仅 token）=> 应用 token
+                // 2. Qt 直连 Java /api/user/current 拉取用户信息（必要时 refresh）
+                if (method == QStringLiteral("Desktop.InitUserProbe") && _tokenProbePending) {
+                    QVariantMap data;
+                    if (!arguments.isEmpty()) {
+                        data = arguments.front().toMap();
+                    }
+                    // 启动恢复仅依赖 token 探测；用户信息由 Qt 直连后端获取。
+                    const QString token = data.value(QStringLiteral("token")).toString().trimmed();
+                    if (!token.isEmpty()) {
+                        _userSession.applyFromProbe(data);
+                        RefreshUserChipFromSession();
+                        _tokenProbePending = false;
+                        DisposeTokenProbeView();
+                        StartDirectUserHydration(token, true);
+                    } else {
+                        // 没有token，直接清理
+                        _tokenProbePending = false;
+                        DisposeTokenProbeView();
+                    }
                     return;
                 }
-                QVariantMap data;
-                if (!arguments.isEmpty()) {
-                    data = arguments.front().toMap();
-                }
-                _tokenProbePending = false;
-                ApplyUserInfoFromMap(data);
-                DisposeTokenProbeView();
             });
 }
 

@@ -105,7 +105,8 @@ void TitleBarUserChip::applyLoggedInAppearance(const UserSession* session)
 {
     const QVariantMap u = session->currentUser();
     const QString nick = u.value(QStringLiteral("nickName")).toString().trimmed();
-    const QString fullName = nick.isEmpty() ? tr("Logged in") : nick;
+    // 启动阶段用户信息由 Qt 直连后端拉取，昵称为空时不显示中间态文案。
+    const QString fullName = nick;
     _nameLabel->setStyleSheet(nameLabelStyleSheet(QStringLiteral("#333333")));
     _nameLabel->ensurePolished();
     _nameLabel->setText(elideToNameWidth(fullName, _nameLabel->font()));
