@@ -5,17 +5,13 @@
 #include "SARibbonPanel.h"
 #include "SARibbonSystemButtonBar.h"
 #include "SARibbonQuickAccessBar.h"
-#include "LoginDialog.h"
 #include "DesktopWeb.h"
-
-#include "AuthHttpClient.h"
 
 #include <QAbstractButton>
 #include <QAction>
 #include <QIcon>
 #include <QMenu>
 #include <QMessageBox>
-#include <QSettings>
 #include <QSizePolicy>
 #include <QTimer>
 #include <QWidget>
@@ -23,19 +19,9 @@
 #include <QDesktopServices>
 #include <QEvent>
 
-namespace
-{
-const QString kSettingsOrg = QStringLiteral("QianJiZN");
-const QString kSettingsApp = QStringLiteral("CamDemo");
-const QString kAuthTokenKey = QStringLiteral("auth/token");
-constexpr int kWindowActivateRefreshDebounceMs = 800;
-constexpr int kWindowActivateRefreshThrottleMs = 12000;
-}
-
 CamDemo::CamDemo(QWidget* parent)
     : SARibbonMainWindow(parent)
-    , _userSession(this)
-    , _authClient(new AuthHttpClient(QStringLiteral("http://localhost:8080"), this))
+    , _userAuth(UserModuleConfig {})
 {
     ui.setupUi(this);
     setWindowTitle(tr("CamDemo"));
@@ -46,29 +32,18 @@ CamDemo::CamDemo(QWidget* parent)
     setMinimumSize(1000, 800);
     InitRibbonBar();
     InitUserChip();
-    connect(&_userSession, &UserSession::authStateChanged, this, &CamDemo::RefreshUserChipFromSession);
-    connect(&_userSession, &UserSession::userProfileChanged, this, &CamDemo::RefreshUserChipFromSession);
-    _windowActivateRefreshDebounceTimer = new QTimer(this);
-    _windowActivateRefreshDebounceTimer->setSingleShot(true);
-    connect(_windowActivateRefreshDebounceTimer,
-            &QTimer::timeout,
-            this,
-            &CamDemo::TryRefreshUserProfileOnWindowActivate);
+    connect(_userAuth.session(), &UserSession::authStateChanged, this, &CamDemo::RefreshUserChipFromSession);
+    connect(_userAuth.session(), &UserSession::userProfileChanged, this, &CamDemo::RefreshUserChipFromSession);
     RefreshUserChipFromSession();
-    InitLoginStateFromToken();
+    _userAuth.initFromStoredToken();
 }
 
-CamDemo::~CamDemo()
-{
-    if (_authClient) {
-        _authClient->cancelAll();
-    }
-}
+CamDemo::~CamDemo() = default;
 
 bool CamDemo::event(QEvent* e)
 {
     if (e && e->type() == QEvent::WindowActivate) {
-        ScheduleWindowActivateRefresh();
+        _userAuth.onWindowActivateEvent();
     }
     return SARibbonMainWindow::event(e);
 }
@@ -98,7 +73,7 @@ void CamDemo::InitUserChip()
     spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     bar->addWidget(spacer);
 
-    _userChip = new TitleBarUserChip(bar);
+    _userChip = new TitleBarUserChip(bar, _userAuth.apiBaseUrl());
     bar->addWidget(_userChip);
 
     QTimer::singleShot(0, this, [this]() { SyncUserChipIntoTitleBar(); });
@@ -142,16 +117,14 @@ void CamDemo::RefreshUserChipFromSession()
     if (!_userChip) {
         return;
     }
-    _userChip->syncFromSession(&_userSession);
+    _userChip->syncFromSession(_userAuth.session());
     SyncUserChipIntoTitleBar();
     QTimer::singleShot(0, this, [this]() { SyncUserChipIntoTitleBar(); });
 }
 
 void CamDemo::OnShowLoginDialog()
 {
-    LoginDialog dlg(this);
-    connect(&dlg, &LoginDialog::loginSucceeded, this, &CamDemo::OnLoginSucceeded);
-    dlg.exec();
+    _userAuth.showLoginDialog(this);
 }
 
 void CamDemo::OnShowAccountMenu()
@@ -165,180 +138,20 @@ void CamDemo::OnShowAccountMenu()
 
 void CamDemo::OnLogout()
 {
-    _authClient->cancelAll();
-    _userHydrationInFlight = false;
-    ClearAuthTokenFromSettings();
-    _userSession.logout();
-}
-
-void CamDemo::OnLoginSucceeded(const QVariantMap& payload)
-{
-    _authClient->cancelAll();
-    SaveAuthTokenToSettings(payload.value(QStringLiteral("token")).toString());
-    _userSession.applyFromLoginPayload(payload);
-}
-
-
-void CamDemo::StartDirectUserHydration(const QString& token, bool allowRefresh)
-{
-    const QString trimmed = token.trimmed();
-    if (trimmed.isEmpty()) {
-        _userHydrationInFlight = false;
-        return;
-    }
-
-    _authClient->cancelAll();
-    _userHydrationInFlight = true;
-    FetchCurrentUserDirect(trimmed, allowRefresh);
-}
-
-void CamDemo::FetchCurrentUserDirect(const QString& token, bool allowRefresh)
-{
-    _authClient->post(QStringLiteral("/api/user/current"), token, 10,
-        [this, token, allowRefresh](const AuthHttpClient::Response& resp) {
-            if (!resp.networkOk) {
-                // 网络失败时保留 token-only，会话稍后可重试。
-                _userHydrationInFlight = false;
-                return;
-            }
-
-            if (resp.bizCode == 200) {
-                const QVariantMap userMap = resp.data.value(QStringLiteral("user")).toMap();
-                if (userMap.isEmpty()) {
-                    _userHydrationInFlight = false;
-                    return;
-                }
-
-                QVariantMap payload;
-                payload.insert(QStringLiteral("token"), token);
-                payload.insert(QStringLiteral("user"), userMap);
-                _userSession.applyFromLoginPayload(payload);
-                RefreshUserChipFromSession();
-                _userHydrationInFlight = false;
-                return;
-            }
-
-            if (resp.bizCode == 401 && allowRefresh) {
-                RefreshTokenDirectAndRetry(token);
-                return;
-            }
-
-            if (resp.bizCode == 401) {
-                _authClient->cancelAll();
-                ClearAuthTokenFromSettings();
-                _userSession.logout();
-                _userHydrationInFlight = false;
-                return;
-            }
-
-            _userHydrationInFlight = false;
-        });
-}
-
-void CamDemo::RefreshTokenDirectAndRetry(const QString& token)
-{
-    _authClient->post(QStringLiteral("/api/auth/refresh"), token, 10,
-        [this, token](const AuthHttpClient::Response& resp) {
-            if (!resp.networkOk) {
-                // 刷新链路网络失败，保持 token-only，允许后续重试。
-                _userHydrationInFlight = false;
-                return;
-            }
-
-            if (resp.bizCode == 200) {
-                FetchCurrentUserDirect(token, false);
-                return;
-            }
-
-            if (resp.bizCode == 401) {
-                _authClient->cancelAll();
-                ClearAuthTokenFromSettings();
-                _userSession.logout();
-                _userHydrationInFlight = false;
-                return;
-            }
-
-            _userHydrationInFlight = false;
-        });
-}
-
-void CamDemo::SaveAuthTokenToSettings(const QString& token)
-{
-    QSettings settings(kSettingsOrg, kSettingsApp);
-    const QString trimmed = token.trimmed();
-    if (trimmed.isEmpty()) {
-        settings.remove(kAuthTokenKey);
-    } else {
-        settings.setValue(kAuthTokenKey, trimmed);
-    }
-    settings.sync();
-}
-
-void CamDemo::InitLoginStateFromToken()
-{
-    const QString token = LoadAuthTokenFromSettings();
-    if (token.isEmpty()) {
-        return;
-    }
-
-    QVariantMap data;
-    data.insert(QStringLiteral("token"), token);
-    data.insert(QStringLiteral("loggedIn"), true);
-    _userSession.applyFromProbe(data);
-    RefreshUserChipFromSession();
-    StartDirectUserHydration(token, true);
-}
-
-QString CamDemo::LoadAuthTokenFromSettings() const
-{
-    QSettings settings(kSettingsOrg, kSettingsApp);
-    return settings.value(kAuthTokenKey).toString().trimmed();
-}
-
-void CamDemo::ClearAuthTokenFromSettings()
-{
-    QSettings settings(kSettingsOrg, kSettingsApp);
-    settings.remove(kAuthTokenKey);
-    settings.sync();
+    _userAuth.logout();
 }
 
 void CamDemo::OnOpenPersonalProfile()
 {
-    const QString tok = _userSession.authToken().trimmed();
+    const QString tok = _userAuth.session()->authToken().trimmed();
     if (tok.isEmpty()) {
         OnShowLoginDialog();
         return;
     }
-    QDesktopServices::openUrl(DesktopWeb::BuildPersonalProfileUrl(tok));
+    QDesktopServices::openUrl(DesktopWeb::buildPersonalProfileUrl(_userAuth.frontendBaseUrl(), tok));
 }
 
 void CamDemo::OnOpenSettingsPlaceholder()
 {
     QMessageBox::information(this, tr("Settings"), tr("Settings page is not available yet."));
-}
-
-void CamDemo::ScheduleWindowActivateRefresh()
-{
-    if (!_windowActivateRefreshDebounceTimer) {
-        return;
-    }
-    _windowActivateRefreshDebounceTimer->start(kWindowActivateRefreshDebounceMs);
-}
-
-void CamDemo::TryRefreshUserProfileOnWindowActivate()
-{
-    const QString token = _userSession.authToken().trimmed();
-    if (token.isEmpty()) {
-        return;
-    }
-    if (_userHydrationInFlight) {
-        return;
-    }
-    if (_lastWindowActivateRefreshAt.isValid()
-        && _lastWindowActivateRefreshAt.elapsed() < kWindowActivateRefreshThrottleMs) {
-        return;
-    }
-
-    _lastWindowActivateRefreshAt.restart();
-    StartDirectUserHydration(token, true);
 }

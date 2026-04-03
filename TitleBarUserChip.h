@@ -20,7 +20,7 @@ public:
     /** 昵称文字区固定宽度，超出由 QFontMetrics 省略 */
     static constexpr int kNameWidthPx = 64;
 
-    explicit TitleBarUserChip(QWidget* parent = nullptr);
+    explicit TitleBarUserChip(QWidget* parent, const QUrl& apiBaseUrl);
     void syncFromSession(const UserSession* session);
     /** 向上失效布局，适配 SARibbon 标题条不随子控件 sizeHint 自动重算的问题 */
     void relayoutInParent();
@@ -43,8 +43,10 @@ private:
     static QString pickInitialChar(const QString& nickName, const QString& userName);
     /** 已登录/中性场景：内圈图 + 2px 白边 */
     QPixmap makeCircularAvatarWithRing(const QPixmap& source) const;
-    static QUrl resolveAvatarUrl(const QString& raw);
+    QUrl resolveAvatarUrl(const QString& raw) const;
     static QPixmap loadAvatarRaster(const char* resourcePath, int side);
+
+    QUrl _apiBaseUrl;
 
     QLabel* _avatarLabel { nullptr };
     QLabel* _nameLabel { nullptr };

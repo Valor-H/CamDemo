@@ -21,7 +21,6 @@ namespace
 {
 constexpr int kLabelFontPx = 12;
 constexpr char kNeutralAvatarRes[] = ":/CamDemo/resource/avatar.png";
-const QUrl kBackendBaseUrl(QStringLiteral("http://localhost:8080/"));
 
 /** 昵称区排版一致，仅颜色区分未登录 / 已登录 */
 QString nameLabelStyleSheet(const QString& colorHex)
@@ -37,8 +36,9 @@ QString elideToNameWidth(const QString& text, const QFont& font)
 }
 } // namespace
 
-TitleBarUserChip::TitleBarUserChip(QWidget* parent)
+TitleBarUserChip::TitleBarUserChip(QWidget* parent, const QUrl& apiBaseUrl)
     : QWidget(parent)
+    , _apiBaseUrl(apiBaseUrl)
     , _nam(new QNetworkAccessManager(this))
 {
     setCursor(Qt::PointingHandCursor);
@@ -122,31 +122,31 @@ void TitleBarUserChip::applyLoggedInAppearance(const UserSession* session)
 
     const QString raw = u.value(QStringLiteral("avatar")).toString().trimmed();
     if (raw.isEmpty()) {
-        // 登录后的短暂中间态（资料尚未回填）使用中性占位，避免首字符头像一闪而过。
-        _avatarLabel->setPixmap(loggedInPlaceholder);
+        // 无自定义头像 URL 时直接首字符占位（与多数账号默认无图一致）
+        _avatarLabel->setPixmap(makeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName));
         return;
     }
 
     const QUrl url = resolveAvatarUrl(raw);
     if (!url.isValid()) {
-        _avatarLabel->setPixmap(loggedInPlaceholder);
+        _avatarLabel->setPixmap(makeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName));
         return;
     }
 
-    // 下载中先保持中性占位，待成功后替换为真实头像；失败再回退首字符头像。
+    // 下载中先保持中性占位，成功后换真实图；失败再首字符。
     _avatarLabel->setPixmap(loggedInPlaceholder);
     _avatarReply = _nam->get(QNetworkRequest(url));
 }
 
-QUrl TitleBarUserChip::resolveAvatarUrl(const QString& raw)
+QUrl TitleBarUserChip::resolveAvatarUrl(const QString& raw) const
 {
     if (raw.isEmpty()) {
         return {};
     }
     QUrl u = QUrl::fromUserInput(raw);
     if (u.isRelative()) {
-        // 后端通常返回 /profile/... 这类相对路径，应以 Java 服务地址为基准解析。
-        return kBackendBaseUrl.resolved(u);
+        // 后端通常返回 /profile/... 这类相对路径，应以 API 基址解析。
+        return _apiBaseUrl.resolved(u);
     }
 
     // Windows 发布环境若未携带 OpenSSL，Qt 可能无法发起 HTTPS 请求；对 OSS 链接做协议降级兜底。

@@ -71,18 +71,22 @@ set_target_properties(libhv PROPERTIES
 
 message(STATUS ">>> libhv: ${LIBHV_LIB_DIR}/hv.lib")
 
-# ========== 5. 添加源文件 ==========
-file(GLOB CAMDEMO_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-file(GLOB CAMDEMO_HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
+# ========== 5. user 模块 ==========
+add_subdirectory(user)
 
+# ========== 6. 主程序（仅壳与 Ribbon/标题栏 UI）==========
 add_executable(CamDemo WIN32
-    ${CAMDEMO_SOURCES}
-    ${CAMDEMO_HEADERS}
+    main.cpp
+    CamDemo.cpp
+    CamDemo.h
+    TitleBarUserChip.cpp
+    TitleBarUserChip.h
     CamDemo.ui
     CamDemo.qrc
 )
 
-# ========== 6. 生成 Qt 翻译文件 ==========
+# ========== 7. 生成 Qt 翻译文件 ==========
+# 更新 .ts 时请将 user 目录一并纳入 lupdate 扫描（LoginDialog 等上下文在 CamDemo_zh_CN.ts 中）
 set(CAMDEMO_TS_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/translations/CamDemo_zh_CN.ts
 )
@@ -90,31 +94,26 @@ qt5_add_translation(CAMDEMO_QM_FILES ${CAMDEMO_TS_FILES})
 add_custom_target(CamDemoTranslations ALL DEPENDS ${CAMDEMO_QM_FILES})
 add_dependencies(CamDemo CamDemoTranslations)
 
-# ========== 7. 链接库 ==========
-target_link_libraries(CamDemo PUBLIC
+# ========== 8. 链接库（HTTP/CEF 由 user 目标传播）==========
+target_link_libraries(CamDemo PRIVATE
+    user
     SARibbonBar::SARibbonBar
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
     Qt5::Network
-    QCefView
-    libhv
 )
 
-# ========== 8. 自动复制运行时文件 ==========
+# ========== 9. 自动复制运行时文件 ==========
 if(CMAKE_CONFIGURATION_TYPES)
-    # Visual Studio 多配置
     add_custom_command(TARGET CamDemo POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E echo "Copying runtime files for $(Configuration)..."
-        # 复制 QCefView
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${QCEF_BUILD_ROOT}/output/$(Configuration)/bin"
             "$<TARGET_FILE_DIR:CamDemo>"
-        # 复制 libhv
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${LIBHV_BIN_DIR}/hv.dll"
             "$<TARGET_FILE_DIR:CamDemo>"
-        # 复制翻译文件
         COMMAND ${CMAKE_COMMAND} -E make_directory
             "$<TARGET_FILE_DIR:CamDemo>/translations"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -123,13 +122,12 @@ if(CMAKE_CONFIGURATION_TYPES)
         COMMENT "Auto-copy runtime files to output directory"
     )
 else()
-    # 单配置生成器
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(QCEF_COPY_FROM "${QCEF_BIN_DEBUG}")
     else()
         set(QCEF_COPY_FROM "${QCEF_BIN_RELEASE}")
     endif()
-    
+
     add_custom_command(TARGET CamDemo POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${QCEF_COPY_FROM}"
@@ -146,14 +144,13 @@ else()
     )
 endif()
 
-# ========== 9. 目标属性 ==========
+# ========== 10. 目标属性 ==========
 set_target_properties(CamDemo PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:CamDemo>"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
 
-# UTF-8 编译
 if(MSVC)
     target_compile_options(CamDemo PRIVATE /utf-8)
 endif()

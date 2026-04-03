@@ -2,11 +2,7 @@
 
 #include "SARibbonMainWindow.h"
 #include "ui_CamDemo.h"
-#include "UserSession.h"
-#include <QElapsedTimer>
-#include <QVariantMap>
-
-class AuthHttpClient;
+#include "UserAuthService.h"
 
 class TitleBarUserChip;
 class QAction;
@@ -18,7 +14,7 @@ class CamDemo : public SARibbonMainWindow
 
 public:
     CamDemo(QWidget* parent = nullptr);
-    ~CamDemo();
+    ~CamDemo() override;
 
 protected:
     bool event(QEvent* e) override;
@@ -34,31 +30,17 @@ private:
     void OnShowLoginDialog();
     void OnShowAccountMenu();
     void OnLogout();
-    void OnLoginSucceeded(const QVariantMap& payload);
-    void InitLoginStateFromToken();
-    void StartDirectUserHydration(const QString& token, bool allowRefresh);
-    void FetchCurrentUserDirect(const QString& token, bool allowRefresh);
-    void RefreshTokenDirectAndRetry(const QString& token);
-    void SaveAuthTokenToSettings(const QString& token);
-    QString LoadAuthTokenFromSettings() const;
-    void ClearAuthTokenFromSettings();
     void OnOpenPersonalProfile();
     void OnOpenSettingsPlaceholder();
-    void ScheduleWindowActivateRefresh();
-    void TryRefreshUserProfileOnWindowActivate();
 
     Ui::CamDemoClass ui;
     QAction* _actionNew;
     QAction* _actionOpen;
     QAction* _actionSave;
-    UserSession _userSession;
+    UserAuthService _userAuth;
     TitleBarUserChip* _userChip { nullptr };
     QMenu* _loginMenu { nullptr };
     QAction* _personalCenterAction { nullptr };
     QAction* _settingsAction { nullptr };
     QAction* _logoutAction { nullptr };
-    AuthHttpClient* _authClient { nullptr };
-    QTimer* _windowActivateRefreshDebounceTimer { nullptr };
-    QElapsedTimer _lastWindowActivateRefreshAt;
-    bool _userHydrationInFlight { false };
 };

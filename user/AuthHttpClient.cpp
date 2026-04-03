@@ -5,7 +5,6 @@
 #include <QJsonObject>
 #include <QMetaObject>
 
-// libhv: 静态链接时需要 HV_STATICLIB（由 CMake hv_static target 自动注入）
 #include <hv/requests.h>
 
 AuthHttpClient::AuthHttpClient(const QString& baseUrl, QObject* parent)
@@ -25,7 +24,6 @@ void AuthHttpClient::post(
     int            timeoutSec,
     Callback       callback)
 {
-    // 在派发时快照当前纪元；将 shared_ptr 传入 lambda 使其在 this 析构后仍安全。
     const quint64 myEpoch  = _cancelEpoch->load(std::memory_order_relaxed);
     auto          epochRef = _cancelEpoch;
 
@@ -37,22 +35,17 @@ void AuthHttpClient::post(
     req->headers["Content-Type"]  = "application/json";
     req->body = "{}";
 
-    // requests::async 在 libhv 全局 I/O 线程中发起请求并回调。
     requests::async(req,
         [epochRef, myEpoch, cb = std::move(callback)](const HttpResponsePtr& resp) {
-            // ── 此处在 libhv I/O 线程 ──
-            // 通过 Qt 事件队列把工作投递回主线程；lambda 按值捕获，无悬挂引用。
             QMetaObject::invokeMethod(
                 QCoreApplication::instance(),
                 [epochRef, myEpoch, resp, cb]() {
-                    // ── 此处在 Qt 主线程 ──
                     if (epochRef->load(std::memory_order_relaxed) != myEpoch) {
-                        return;  // 请求已被 cancelAll() 取消
+                        return;
                     }
 
                     Response result;
                     if (!resp) {
-                        // 网络层失败（连接拒绝、超时等）
                         result.networkOk = false;
                         cb(result);
                         return;
