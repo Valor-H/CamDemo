@@ -32,10 +32,10 @@ CamDemo::CamDemo(QWidget* parent)
     setMinimumSize(1000, 800);
     InitRibbonBar();
     InitUserChip();
-    connect(_userAuth.session(), &UserSession::authStateChanged, this, &CamDemo::RefreshUserChipFromSession);
-    connect(_userAuth.session(), &UserSession::userProfileChanged, this, &CamDemo::RefreshUserChipFromSession);
+    connect(_userAuth.Session(), &UserSession::AuthStateChanged, this, &CamDemo::RefreshUserChipFromSession);
+    connect(_userAuth.Session(), &UserSession::UserProfileChanged, this, &CamDemo::RefreshUserChipFromSession);
     RefreshUserChipFromSession();
-    _userAuth.initFromStoredToken();
+    _userAuth.InitFromStoredToken();
 }
 
 CamDemo::~CamDemo() = default;
@@ -43,7 +43,7 @@ CamDemo::~CamDemo() = default;
 bool CamDemo::event(QEvent* e)
 {
     if (e && e->type() == QEvent::WindowActivate) {
-        _userAuth.onWindowActivateEvent();
+        _userAuth.OnWindowActivateEvent();
     }
     return SARibbonMainWindow::event(e);
 }
@@ -73,7 +73,7 @@ void CamDemo::InitUserChip()
     spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     bar->addWidget(spacer);
 
-    _userChip = new TitleBarUserChip(bar, _userAuth.apiBaseUrl());
+    _userChip = new TitleBarUserChip(bar, _userAuth.ApiBaseUrl());
     bar->addWidget(_userChip);
 
     QTimer::singleShot(0, this, [this]() { SyncUserChipIntoTitleBar(); });
@@ -86,7 +86,7 @@ void CamDemo::InitUserChip()
     connect(_personalCenterAction, &QAction::triggered, this, &CamDemo::OnOpenPersonalProfile, Qt::UniqueConnection);
     connect(_settingsAction, &QAction::triggered, this, &CamDemo::OnOpenSettingsPlaceholder, Qt::UniqueConnection);
 
-    connect(_userChip, &TitleBarUserChip::loginRequested, this, &CamDemo::OnShowLoginDialog);
+    connect(_userChip, &TitleBarUserChip::loginRequested, this, &CamDemo::OnShowAccountAuthDialog);
     connect(_userChip, &TitleBarUserChip::accountMenuRequested, this, &CamDemo::OnShowAccountMenu);
 }
 
@@ -109,7 +109,7 @@ void CamDemo::SyncUserChipIntoTitleBar()
     const int minH = TitleBarUserChip::kAvatarSide;
     const int h = rowH > 0 ? qMax(rowH, minH) : minH;
     _userChip->setFixedHeight(h);
-    _userChip->relayoutInParent();
+    _userChip->RelayoutInParent();
 }
 
 void CamDemo::RefreshUserChipFromSession()
@@ -117,14 +117,14 @@ void CamDemo::RefreshUserChipFromSession()
     if (!_userChip) {
         return;
     }
-    _userChip->syncFromSession(_userAuth.session());
+    _userChip->SyncFromSession(_userAuth.Session());
     SyncUserChipIntoTitleBar();
     QTimer::singleShot(0, this, [this]() { SyncUserChipIntoTitleBar(); });
 }
 
-void CamDemo::OnShowLoginDialog()
+void CamDemo::OnShowAccountAuthDialog()
 {
-    _userAuth.showLoginDialog(this);
+    _userAuth.ShowAccountAuthDialog(this);
 }
 
 void CamDemo::OnShowAccountMenu()
@@ -138,17 +138,17 @@ void CamDemo::OnShowAccountMenu()
 
 void CamDemo::OnLogout()
 {
-    _userAuth.logout();
+    _userAuth.Logout();
 }
 
 void CamDemo::OnOpenPersonalProfile()
 {
-    const QString tok = _userAuth.session()->authToken().trimmed();
+    const QString tok = _userAuth.Session()->AuthToken().trimmed();
     if (tok.isEmpty()) {
-        OnShowLoginDialog();
+        OnShowAccountAuthDialog();
         return;
     }
-    QDesktopServices::openUrl(DesktopWeb::buildPersonalProfileUrl(_userAuth.frontendBaseUrl(), tok));
+    QDesktopServices::openUrl(DesktopWeb::buildPersonalProfileUrl(_userAuth.FrontendBaseUrl(), tok));
 }
 
 void CamDemo::OnOpenSettingsPlaceholder()

@@ -15,10 +15,10 @@ AuthHttpClient::AuthHttpClient(const QString& baseUrl, QObject* parent)
 
 AuthHttpClient::~AuthHttpClient()
 {
-    cancelAll();
+    CancelAll();
 }
 
-void AuthHttpClient::post(
+void AuthHttpClient::Post(
     const QString& path,
     const QString& bearerToken,
     int            timeoutSec,
@@ -73,7 +73,7 @@ void AuthHttpClient::post(
         });
 }
 
-void AuthHttpClient::cancelAll()
+void AuthHttpClient::CancelAll()
 {
     _cancelEpoch->fetch_add(1, std::memory_order_relaxed);
 }

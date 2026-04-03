@@ -12,7 +12,7 @@ class AuthHttpClient;
 
 /**
  * 登录注册相关门面：持久化 token、拉取当前用户、刷新 token、窗口激活节流补水。
- * 展示登录对话框前宿主须已完成 QCef 全局初始化。
+ * 展示账户认证对话框前宿主须已完成 QCef 全局初始化。
  */
 class UserAuthService final : public QObject
 {
@@ -22,33 +22,33 @@ public:
     explicit UserAuthService(const UserModuleConfig& cfg, QObject* parent = nullptr);
     ~UserAuthService() override;
 
-    UserSession* session() { return &_userSession; }
-    const UserSession* session() const { return &_userSession; }
+    UserSession* Session() { return &_userSession; }
+    const UserSession* Session() const { return &_userSession; }
 
-    const UserModuleConfig& config() const { return _cfg; }
-    QUrl apiBaseUrl() const { return _cfg.apiBaseUrl; }
-    QUrl frontendBaseUrl() const { return _cfg.frontendBaseUrl; }
+    const UserModuleConfig& Config() const { return _cfg; }
+    QUrl ApiBaseUrl() const { return _cfg.apiBaseUrl; }
+    QUrl FrontendBaseUrl() const { return _cfg.frontendBaseUrl; }
 
-    void cancelAllPendingRequests();
+    void CancelAllPendingRequests();
 
-    void showLoginDialog(QWidget* parent);
-    void logout();
-    void initFromStoredToken();
-    void onWindowActivateEvent();
+    void ShowAccountAuthDialog(QWidget* parent);
+    void Logout();
+    void InitFromStoredToken();
+    void OnWindowActivateEvent();
 
 private slots:
-    void onLoginSucceeded(const QVariantMap& payload);
-    void tryRefreshUserProfileOnWindowActivate();
+    void OnLoginSucceeded(const QVariantMap& payload);
+    void TryRefreshUserProfileOnWindowActivate();
 
 private:
-    void scheduleWindowActivateRefresh();
-    void saveAuthTokenToSettings(const QString& token);
-    QString loadAuthTokenFromSettings() const;
-    void clearAuthTokenFromSettings();
+    void ScheduleWindowActivateRefresh();
+    void SaveAuthTokenToSettings(const QString& token);
+    QString LoadAuthTokenFromSettings() const;
+    void ClearAuthTokenFromSettings();
 
-    void startDirectUserHydration(const QString& token, bool allowRefresh);
-    void fetchCurrentUserDirect(const QString& token, bool allowRefresh);
-    void refreshTokenDirectAndRetry(const QString& token);
+    void StartDirectUserHydration(const QString& token, bool allowRefresh);
+    void FetchCurrentUserDirect(const QString& token, bool allowRefresh);
+    void RefreshTokenDirectAndRetry(const QString& token);
 
     UserModuleConfig _cfg;
     UserSession _userSession;

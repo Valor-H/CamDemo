@@ -1,7 +1,7 @@
 #include "UserAuthService.h"
 
 #include "AuthHttpClient.h"
-#include "LoginDialog.h"
+#include "AccountAuthDialog.h"
 #include "DesktopWeb.h"
 
 #include <QSettings>
@@ -33,47 +33,47 @@ UserAuthService::UserAuthService(const UserModuleConfig& cfg, QObject* parent)
     connect(_windowActivateRefreshDebounceTimer,
             &QTimer::timeout,
             this,
-            &UserAuthService::tryRefreshUserProfileOnWindowActivate);
+            &UserAuthService::TryRefreshUserProfileOnWindowActivate);
 }
 
 UserAuthService::~UserAuthService()
 {
-    cancelAllPendingRequests();
+    CancelAllPendingRequests();
 }
 
-void UserAuthService::cancelAllPendingRequests()
+void UserAuthService::CancelAllPendingRequests()
 {
     if (_authClient) {
-        _authClient->cancelAll();
+        _authClient->CancelAll();
     }
 }
 
-void UserAuthService::showLoginDialog(QWidget* parent)
+void UserAuthService::ShowAccountAuthDialog(QWidget* parent)
 {
     const QUrl loginUrl = DesktopWeb::buildDesktopLoginUrl(_cfg.frontendBaseUrl);
-    LoginDialog dlg(parent, loginUrl);
-    connect(&dlg, &LoginDialog::loginSucceeded, this, &UserAuthService::onLoginSucceeded);
+    AccountAuthDialog dlg(parent, loginUrl);
+    connect(&dlg, &AccountAuthDialog::AuthSucceeded, this, &UserAuthService::OnLoginSucceeded);
     dlg.exec();
 }
 
-void UserAuthService::logout()
+void UserAuthService::Logout()
 {
-    cancelAllPendingRequests();
+    CancelAllPendingRequests();
     _userHydrationInFlight = false;
-    clearAuthTokenFromSettings();
-    _userSession.logout();
+    ClearAuthTokenFromSettings();
+    _userSession.Logout();
 }
 
-void UserAuthService::onLoginSucceeded(const QVariantMap& payload)
+void UserAuthService::OnLoginSucceeded(const QVariantMap& payload)
 {
-    cancelAllPendingRequests();
-    saveAuthTokenToSettings(payload.value(QStringLiteral("token")).toString());
-    _userSession.applyFromLoginPayload(payload);
+    CancelAllPendingRequests();
+    SaveAuthTokenToSettings(payload.value(QStringLiteral("token")).toString());
+    _userSession.ApplyFromLoginPayload(payload);
 }
 
-void UserAuthService::initFromStoredToken()
+void UserAuthService::InitFromStoredToken()
 {
-    const QString token = loadAuthTokenFromSettings();
+    const QString token = LoadAuthTokenFromSettings();
     if (token.isEmpty()) {
         return;
     }
@@ -81,11 +81,11 @@ void UserAuthService::initFromStoredToken()
     QVariantMap data;
     data.insert(QStringLiteral("token"), token);
     data.insert(QStringLiteral("loggedIn"), true);
-    _userSession.applyFromProbe(data);
-    startDirectUserHydration(token, true);
+    _userSession.ApplyFromProbe(data);
+    StartDirectUserHydration(token, true);
 }
 
-void UserAuthService::startDirectUserHydration(const QString& token, bool allowRefresh)
+void UserAuthService::StartDirectUserHydration(const QString& token, bool allowRefresh)
 {
     const QString trimmed = token.trimmed();
     if (trimmed.isEmpty()) {
@@ -93,14 +93,14 @@ void UserAuthService::startDirectUserHydration(const QString& token, bool allowR
         return;
     }
 
-    cancelAllPendingRequests();
+    CancelAllPendingRequests();
     _userHydrationInFlight = true;
-    fetchCurrentUserDirect(trimmed, allowRefresh);
+    FetchCurrentUserDirect(trimmed, allowRefresh);
 }
 
-void UserAuthService::fetchCurrentUserDirect(const QString& token, bool allowRefresh)
+void UserAuthService::FetchCurrentUserDirect(const QString& token, bool allowRefresh)
 {
-    _authClient->post(QStringLiteral("/api/user/current"), token, 10,
+    _authClient->Post(QStringLiteral("/api/user/current"), token, 10,
         [this, token, allowRefresh](const AuthHttpClient::Response& resp) {
             if (!resp.networkOk) {
                 _userHydrationInFlight = false;
@@ -117,20 +117,20 @@ void UserAuthService::fetchCurrentUserDirect(const QString& token, bool allowRef
                 QVariantMap payload;
                 payload.insert(QStringLiteral("token"), token);
                 payload.insert(QStringLiteral("user"), userMap);
-                _userSession.applyFromLoginPayload(payload);
+                _userSession.ApplyFromLoginPayload(payload);
                 _userHydrationInFlight = false;
                 return;
             }
 
             if (resp.bizCode == 401 && allowRefresh) {
-                refreshTokenDirectAndRetry(token);
+                RefreshTokenDirectAndRetry(token);
                 return;
             }
 
             if (resp.bizCode == 401) {
-                cancelAllPendingRequests();
-                clearAuthTokenFromSettings();
-                _userSession.logout();
+                CancelAllPendingRequests();
+                ClearAuthTokenFromSettings();
+                _userSession.Logout();
                 _userHydrationInFlight = false;
                 return;
             }
@@ -139,9 +139,9 @@ void UserAuthService::fetchCurrentUserDirect(const QString& token, bool allowRef
         });
 }
 
-void UserAuthService::refreshTokenDirectAndRetry(const QString& token)
+void UserAuthService::RefreshTokenDirectAndRetry(const QString& token)
 {
-    _authClient->post(QStringLiteral("/api/auth/refresh"), token, 10,
+    _authClient->Post(QStringLiteral("/api/auth/refresh"), token, 10,
         [this, token](const AuthHttpClient::Response& resp) {
             if (!resp.networkOk) {
                 _userHydrationInFlight = false;
@@ -149,14 +149,14 @@ void UserAuthService::refreshTokenDirectAndRetry(const QString& token)
             }
 
             if (resp.bizCode == 200) {
-                fetchCurrentUserDirect(token, false);
+                FetchCurrentUserDirect(token, false);
                 return;
             }
 
             if (resp.bizCode == 401) {
-                cancelAllPendingRequests();
-                clearAuthTokenFromSettings();
-                _userSession.logout();
+                CancelAllPendingRequests();
+                ClearAuthTokenFromSettings();
+                _userSession.Logout();
                 _userHydrationInFlight = false;
                 return;
             }
@@ -165,7 +165,7 @@ void UserAuthService::refreshTokenDirectAndRetry(const QString& token)
         });
 }
 
-void UserAuthService::saveAuthTokenToSettings(const QString& token)
+void UserAuthService::SaveAuthTokenToSettings(const QString& token)
 {
     QSettings settings(_cfg.settingsOrg, _cfg.settingsApp);
     const QString trimmed = token.trimmed();
@@ -177,25 +177,25 @@ void UserAuthService::saveAuthTokenToSettings(const QString& token)
     settings.sync();
 }
 
-QString UserAuthService::loadAuthTokenFromSettings() const
+QString UserAuthService::LoadAuthTokenFromSettings() const
 {
     QSettings settings(_cfg.settingsOrg, _cfg.settingsApp);
     return settings.value(_cfg.authTokenKey).toString().trimmed();
 }
 
-void UserAuthService::clearAuthTokenFromSettings()
+void UserAuthService::ClearAuthTokenFromSettings()
 {
     QSettings settings(_cfg.settingsOrg, _cfg.settingsApp);
     settings.remove(_cfg.authTokenKey);
     settings.sync();
 }
 
-void UserAuthService::onWindowActivateEvent()
+void UserAuthService::OnWindowActivateEvent()
 {
-    scheduleWindowActivateRefresh();
+    ScheduleWindowActivateRefresh();
 }
 
-void UserAuthService::scheduleWindowActivateRefresh()
+void UserAuthService::ScheduleWindowActivateRefresh()
 {
     if (!_windowActivateRefreshDebounceTimer) {
         return;
@@ -203,9 +203,9 @@ void UserAuthService::scheduleWindowActivateRefresh()
     _windowActivateRefreshDebounceTimer->start(kWindowActivateRefreshDebounceMs);
 }
 
-void UserAuthService::tryRefreshUserProfileOnWindowActivate()
+void UserAuthService::TryRefreshUserProfileOnWindowActivate()
 {
-    const QString token = _userSession.authToken().trimmed();
+    const QString token = _userSession.AuthToken().trimmed();
     if (token.isEmpty()) {
         return;
     }
@@ -218,5 +218,5 @@ void UserAuthService::tryRefreshUserProfileOnWindowActivate()
     }
 
     _lastWindowActivateRefreshAt.restart();
-    startDirectUserHydration(token, true);
+    StartDirectUserHydration(token, true);
 }

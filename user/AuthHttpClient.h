@@ -14,7 +14,7 @@
  * 请求在 libhv I/O 线程中发起；回调通过 Qt 事件队列（QueuedConnection）
  * 投递回 Qt 主线程，因此回调中可以安全访问 Qt/UI 对象。
  *
- * cancelAll() 使所有进行中请求的回调成为空操作，
+ * CancelAll() 使所有进行中请求的回调成为空操作，
  * 包括已进入 Qt 事件队列但尚未执行的回调。
  */
 class AuthHttpClient : public QObject
@@ -41,7 +41,7 @@ public:
      * 异步 POST baseUrl + path，携带 Bearer token，超时 timeoutSec 秒。
      * callback 保证在 Qt 主线程执行。
      */
-    void post(const QString& path,
+    void Post(const QString& path,
               const QString& bearerToken,
               int            timeoutSec,
               Callback       callback);
@@ -50,10 +50,10 @@ public:
      * 使所有进行中请求的回调成为空操作（线程安全，可在任意线程调用）。
      * 调用后先前注册的所有 callback 均不会被执行。
      */
-    void cancelAll();
+    void CancelAll();
 
-    QString baseUrl() const { return _baseUrl; }
-    void    setBaseUrl(const QString& url) { _baseUrl = url; }
+    QString BaseUrl() const { return _baseUrl; }
+    void    SetBaseUrl(const QString& url) { _baseUrl = url; }
 
 private:
     QString                                _baseUrl;

@@ -27,7 +27,7 @@ private:
     void InitUserChip();
     /** 标题栏高度与布局链同步（探测登录后 sizeHint 变化时需 invalidate，否则控件几何错误） */
     void SyncUserChipIntoTitleBar();
-    void OnShowLoginDialog();
+    void OnShowAccountAuthDialog();
     void OnShowAccountMenu();
     void OnLogout();
     void OnOpenPersonalProfile();

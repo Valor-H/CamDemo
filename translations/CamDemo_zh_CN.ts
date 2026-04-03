@@ -45,7 +45,7 @@
     </message>
 </context>
 <context>
-    <name>LoginDialog</name>
+    <name>AccountAuthDialog</name>
     <message>
         <source>Login</source>
         <translation>登录</translation>

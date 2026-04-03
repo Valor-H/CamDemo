@@ -5,8 +5,11 @@ add_library(user STATIC
     UserSession.h
     AuthHttpClient.cpp
     AuthHttpClient.h
-    LoginDialog.cpp
-    LoginDialog.h
+    LoginWebAuthHelpers.cpp
+    LoginWebAuthHelpers.h
+    DesktopAuthBridge.h
+    AccountAuthDialog.cpp
+    AccountAuthDialog.h
     UserAuthService.cpp
     UserAuthService.h
     UserModuleConfig.h

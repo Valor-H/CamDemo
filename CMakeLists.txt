@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.19)
 
 # 强制 v142 工具集（与 QCefView 一致）
 if(CMAKE_GENERATOR MATCHES "Visual Studio")
@@ -26,6 +26,14 @@ set(QCEF_LIB_DEBUG "${QCEF_BUILD_ROOT}/output/Debug/lib")
 set(QCEF_BIN_RELEASE "${QCEF_BUILD_ROOT}/output/Release/bin")
 set(QCEF_LIB_RELEASE "${QCEF_BUILD_ROOT}/output/Release/lib")
 
+# 当 Release 产物不存在时，非 Debug 配置回退到 Debug 产物，避免 VS 重新生成时报导入库配置缺失。
+set(QCEF_BIN_EFFECTIVE_RELEASE "${QCEF_BIN_RELEASE}")
+set(QCEF_LIB_EFFECTIVE_RELEASE "${QCEF_LIB_RELEASE}")
+if(NOT EXISTS "${QCEF_LIB_RELEASE}/QCefView.lib")
+    set(QCEF_BIN_EFFECTIVE_RELEASE "${QCEF_BIN_DEBUG}")
+    set(QCEF_LIB_EFFECTIVE_RELEASE "${QCEF_LIB_DEBUG}")
+endif()
+
 if(NOT EXISTS "${QCEF_LIB_DEBUG}/QCefView.lib")
     message(WARNING "QCefView Debug lib not found: ${QCEF_LIB_DEBUG}/QCefView.lib")
 endif()
@@ -37,8 +45,12 @@ add_library(QCefView SHARED IMPORTED GLOBAL)
 set_target_properties(QCefView PROPERTIES
     IMPORTED_LOCATION_DEBUG "${QCEF_BIN_DEBUG}/QCefView.dll"
     IMPORTED_IMPLIB_DEBUG "${QCEF_LIB_DEBUG}/QCefView.lib"
-    IMPORTED_LOCATION_RELEASE "${QCEF_BIN_RELEASE}/QCefView.dll"
-    IMPORTED_IMPLIB_RELEASE "${QCEF_LIB_RELEASE}/QCefView.lib"
+    IMPORTED_LOCATION_RELEASE "${QCEF_BIN_EFFECTIVE_RELEASE}/QCefView.dll"
+    IMPORTED_IMPLIB_RELEASE "${QCEF_LIB_EFFECTIVE_RELEASE}/QCefView.lib"
+    IMPORTED_LOCATION_RELWITHDEBINFO "${QCEF_BIN_EFFECTIVE_RELEASE}/QCefView.dll"
+    IMPORTED_IMPLIB_RELWITHDEBINFO "${QCEF_LIB_EFFECTIVE_RELEASE}/QCefView.lib"
+    IMPORTED_LOCATION_MINSIZEREL "${QCEF_BIN_EFFECTIVE_RELEASE}/QCefView.dll"
+    IMPORTED_IMPLIB_MINSIZEREL "${QCEF_LIB_EFFECTIVE_RELEASE}/QCefView.lib"
     INTERFACE_INCLUDE_DIRECTORIES "${QCEF_INCLUDE_DIR}"
 )
 
@@ -48,6 +60,7 @@ message(STATUS ">>> QCefView Release: ${QCEF_LIB_RELEASE}/QCefView.lib")
 # ========== 3. 集成 SARibbonBar ==========
 set(SARibbonBar_DIR "D:/Codes/SARibbon/bin_qt5.15.2_MSVC_x64/lib/cmake/SARibbonBar")
 find_package(SARibbonBar REQUIRED)
+# 运行时 DLL 名以 SARibbon 的 cmake 导入目标为准（部分构建产物为 SARibbonBard.dll，勿手写错文件名）
 
 # ========== 4. 集成 libhv（动态库）==========
 set(LIBHV_ROOT "D:/Codes/libhv/installed_debug")
@@ -65,6 +78,10 @@ set_target_properties(libhv PROPERTIES
     IMPORTED_IMPLIB_DEBUG "${LIBHV_LIB_DIR}/hv.lib"
     IMPORTED_LOCATION_RELEASE "${LIBHV_BIN_DIR}/hv.dll"
     IMPORTED_IMPLIB_RELEASE "${LIBHV_LIB_DIR}/hv.lib"
+    IMPORTED_LOCATION_RELWITHDEBINFO "${LIBHV_BIN_DIR}/hv.dll"
+    IMPORTED_IMPLIB_RELWITHDEBINFO "${LIBHV_LIB_DIR}/hv.lib"
+    IMPORTED_LOCATION_MINSIZEREL "${LIBHV_BIN_DIR}/hv.dll"
+    IMPORTED_IMPLIB_MINSIZEREL "${LIBHV_LIB_DIR}/hv.lib"
     INTERFACE_INCLUDE_DIRECTORIES "${LIBHV_INCLUDE_DIR}"
     INTERFACE_LINK_LIBRARIES "secur32;crypt32;winmm;iphlpapi;ws2_32"
 )
@@ -86,7 +103,7 @@ add_executable(CamDemo WIN32
 )
 
 # ========== 7. 生成 Qt 翻译文件 ==========
-# 更新 .ts 时请将 user 目录一并纳入 lupdate 扫描（LoginDialog 等上下文在 CamDemo_zh_CN.ts 中）
+# 更新 .ts 时请将 user 目录一并纳入 lupdate 扫描（AccountAuthDialog 等上下文在 CamDemo_zh_CN.ts 中）
 set(CAMDEMO_TS_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/translations/CamDemo_zh_CN.ts
 )
@@ -114,6 +131,9 @@ if(CMAKE_CONFIGURATION_TYPES)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${LIBHV_BIN_DIR}/hv.dll"
             "$<TARGET_FILE_DIR:CamDemo>"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:SARibbonBar::SARibbonBar>"
+            "$<TARGET_FILE_DIR:CamDemo>"
         COMMAND ${CMAKE_COMMAND} -E make_directory
             "$<TARGET_FILE_DIR:CamDemo>/translations"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -134,6 +154,9 @@ else()
             "$<TARGET_FILE_DIR:CamDemo>"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${LIBHV_BIN_DIR}/hv.dll"
+            "$<TARGET_FILE_DIR:CamDemo>"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:SARibbonBar::SARibbonBar>"
             "$<TARGET_FILE_DIR:CamDemo>"
         COMMAND ${CMAKE_COMMAND} -E make_directory
             "$<TARGET_FILE_DIR:CamDemo>/translations"

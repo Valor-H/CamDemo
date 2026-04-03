@@ -11,23 +11,23 @@ UserSession::UserSession(QObject* parent)
     : QObject(parent)
 {}
 
-void UserSession::setAuthenticatedState(bool on)
+void UserSession::SetAuthenticatedState(bool on)
 {
     if (_authenticated == on) {
         return;
     }
     _authenticated = on;
-    emit authStateChanged(on);
+    emit AuthStateChanged(on);
 }
 
-void UserSession::applyFromLoginPayload(const QVariantMap& payload)
+void UserSession::ApplyFromLoginPayload(const QVariantMap& payload)
 {
     const QString token = payload.value(kTokenKey).toString().trimmed();
     if (token.isEmpty()) {
         _authToken.clear();
         _currentUser.clear();
-        setAuthenticatedState(false);
-        emit userProfileChanged();
+        SetAuthenticatedState(false);
+        emit UserProfileChanged();
         return;
     }
 
@@ -36,34 +36,34 @@ void UserSession::applyFromLoginPayload(const QVariantMap& payload)
     if (!user.isEmpty()) {
         _currentUser = user;
     }
-    setAuthenticatedState(true);
-    emit userProfileChanged();
+    SetAuthenticatedState(true);
+    emit UserProfileChanged();
 }
 
-void UserSession::applyFromProbe(const QVariantMap& data)
+void UserSession::ApplyFromProbe(const QVariantMap& data)
 {
     const bool loggedIn = data.value(kLoggedInKey).toBool();
     if (!loggedIn) {
         _authToken.clear();
         _currentUser.clear();
-        setAuthenticatedState(false);
-        emit userProfileChanged();
+        SetAuthenticatedState(false);
+        emit UserProfileChanged();
         return;
     }
 
     const QString token = data.value(kTokenKey).toString().trimmed();
     _authToken = token;
     // 启动恢复时只有 token，不再从缓存读用户信息
-    // 用户信息由前端根据 token 重新从后端拉取并通过 applyFromLoginPayload 更新
+    // 用户信息由前端根据 token 重新从后端拉取并通过 ApplyFromLoginPayload 更新
     _currentUser.clear();
-    setAuthenticatedState(true);
-    emit userProfileChanged();
+    SetAuthenticatedState(true);
+    emit UserProfileChanged();
 }
 
-void UserSession::logout()
+void UserSession::Logout()
 {
     _authToken.clear();
     _currentUser.clear();
-    setAuthenticatedState(false);
-    emit userProfileChanged();
+    SetAuthenticatedState(false);
+    emit UserProfileChanged();
 }

@@ -62,10 +62,10 @@ TitleBarUserChip::TitleBarUserChip(QWidget* parent, const QUrl& apiBaseUrl)
     lay->addWidget(_avatarLabel);
     lay->addWidget(_nameLabel);
 
-    connect(_nam, &QNetworkAccessManager::finished, this, &TitleBarUserChip::onAvatarDownloadFinished);
+    connect(_nam, &QNetworkAccessManager::finished, this, &TitleBarUserChip::OnAvatarDownloadFinished);
 }
 
-void TitleBarUserChip::relayoutInParent()
+void TitleBarUserChip::RelayoutInParent()
 {
     updateGeometry();
     adjustSize();
@@ -79,23 +79,23 @@ void TitleBarUserChip::relayoutInParent()
     }
 }
 
-void TitleBarUserChip::syncFromSession(const UserSession* session)
+void TitleBarUserChip::SyncFromSession(const UserSession* session)
 {
-    abortAvatarRequest();
-    _loggedIn = session && session->isAuthenticated();
+    AbortAvatarRequest();
+    _loggedIn = session && session->IsAuthenticated();
     if (!_loggedIn) {
-        applyLoggedOutAppearance();
+        ApplyLoggedOutAppearance();
         return;
     }
-    applyLoggedInAppearance(session);
+    ApplyLoggedInAppearance(session);
 }
 
-void TitleBarUserChip::applyLoggedOutAppearance()
+void TitleBarUserChip::ApplyLoggedOutAppearance()
 {
     _fallbackNickName.clear();
     _fallbackUserName.clear();
-    const QPixmap ph = loadAvatarRaster(kNeutralAvatarRes, TitleBarUserChip::kAvatarSide * 2);
-    _avatarLabel->setPixmap(makeCircularAvatarWithRing(ph));
+    const QPixmap ph = LoadAvatarRaster(kNeutralAvatarRes, TitleBarUserChip::kAvatarSide * 2);
+    _avatarLabel->setPixmap(MakeCircularAvatarWithRing(ph));
     _avatarLabel->setStyleSheet(QStringLiteral("QLabel { background: transparent; border: none; }"));
     _nameLabel->setStyleSheet(nameLabelStyleSheet(QStringLiteral("#999999")));
     _nameLabel->ensurePolished();
@@ -103,9 +103,9 @@ void TitleBarUserChip::applyLoggedOutAppearance()
     _nameLabel->setToolTip(QString());
 }
 
-void TitleBarUserChip::applyLoggedInAppearance(const UserSession* session)
+void TitleBarUserChip::ApplyLoggedInAppearance(const UserSession* session)
 {
-    const QVariantMap u = session->currentUser();
+    const QVariantMap u = session->CurrentUser();
     const QString nick = u.value(QStringLiteral("nickName")).toString().trimmed();
     const QString userName = u.value(QStringLiteral("userName")).toString().trimmed();
     _fallbackNickName = nick;
@@ -117,19 +117,19 @@ void TitleBarUserChip::applyLoggedInAppearance(const UserSession* session)
 
     _avatarLabel->setStyleSheet(QStringLiteral("QLabel { background: transparent; border: none; }"));
 
-    const QPixmap loggedInPlaceholder = makeCircularAvatarWithRing(
-        loadAvatarRaster(kNeutralAvatarRes, TitleBarUserChip::kAvatarSide * 2));
+    const QPixmap loggedInPlaceholder = MakeCircularAvatarWithRing(
+        LoadAvatarRaster(kNeutralAvatarRes, TitleBarUserChip::kAvatarSide * 2));
 
     const QString raw = u.value(QStringLiteral("avatar")).toString().trimmed();
     if (raw.isEmpty()) {
         // 无自定义头像 URL 时直接首字符占位（与多数账号默认无图一致）
-        _avatarLabel->setPixmap(makeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName));
+        _avatarLabel->setPixmap(MakeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName));
         return;
     }
 
-    const QUrl url = resolveAvatarUrl(raw);
+    const QUrl url = ResolveAvatarUrl(raw);
     if (!url.isValid()) {
-        _avatarLabel->setPixmap(makeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName));
+        _avatarLabel->setPixmap(MakeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName));
         return;
     }
 
@@ -138,7 +138,7 @@ void TitleBarUserChip::applyLoggedInAppearance(const UserSession* session)
     _avatarReply = _nam->get(QNetworkRequest(url));
 }
 
-QUrl TitleBarUserChip::resolveAvatarUrl(const QString& raw) const
+QUrl TitleBarUserChip::ResolveAvatarUrl(const QString& raw) const
 {
     if (raw.isEmpty()) {
         return {};
@@ -158,7 +158,7 @@ QUrl TitleBarUserChip::resolveAvatarUrl(const QString& raw) const
     return u;
 }
 
-QString TitleBarUserChip::pickInitialChar(const QString& nickName, const QString& userName)
+QString TitleBarUserChip::PickInitialChar(const QString& nickName, const QString& userName)
 {
     const QString nick = nickName.trimmed();
     const QString user = userName.trimmed();
@@ -174,7 +174,7 @@ QString TitleBarUserChip::pickInitialChar(const QString& nickName, const QString
     return QString(c);
 }
 
-QPixmap TitleBarUserChip::makeInitialAvatarWithRing(const QString& nickName, const QString& userName) const
+QPixmap TitleBarUserChip::MakeInitialAvatarWithRing(const QString& nickName, const QString& userName) const
 {
     const int side = TitleBarUserChip::kAvatarSide;
     QPixmap out(side, side);
@@ -194,11 +194,11 @@ QPixmap TitleBarUserChip::makeInitialAvatarWithRing(const QString& nickName, con
     f.setPixelSize(11);
     painter.setFont(f);
     painter.setPen(QColor(Qt::white));
-    painter.drawText(QRect(2, 2, side - 4, side - 4), Qt::AlignCenter, pickInitialChar(nickName, userName));
+    painter.drawText(QRect(2, 2, side - 4, side - 4), Qt::AlignCenter, PickInitialChar(nickName, userName));
     return out;
 }
 
-QPixmap TitleBarUserChip::loadAvatarRaster(const char* resourcePath, int side)
+QPixmap TitleBarUserChip::LoadAvatarRaster(const char* resourcePath, int side)
 {
     QPixmap loaded;
     if (!loaded.load(QString::fromUtf8(resourcePath))) {
@@ -209,7 +209,7 @@ QPixmap TitleBarUserChip::loadAvatarRaster(const char* resourcePath, int side)
     return loaded.scaled(side, side, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
 }
 
-QPixmap TitleBarUserChip::makeCircularAvatarWithRing(const QPixmap& source) const
+QPixmap TitleBarUserChip::MakeCircularAvatarWithRing(const QPixmap& source) const
 {
     const int side = TitleBarUserChip::kAvatarSide;
     QPixmap out(side, side);
@@ -233,7 +233,7 @@ QPixmap TitleBarUserChip::makeCircularAvatarWithRing(const QPixmap& source) cons
     return out;
 }
 
-void TitleBarUserChip::abortAvatarRequest()
+void TitleBarUserChip::AbortAvatarRequest()
 {
     if (_avatarReply) {
         disconnect(_avatarReply, nullptr, this, nullptr);
@@ -255,7 +255,7 @@ void TitleBarUserChip::mouseReleaseEvent(QMouseEvent* event)
     QWidget::mouseReleaseEvent(event);
 }
 
-void TitleBarUserChip::onAvatarDownloadFinished(QNetworkReply* reply)
+void TitleBarUserChip::OnAvatarDownloadFinished(QNetworkReply* reply)
 {
     if (!reply) {
         return;
@@ -273,10 +273,10 @@ void TitleBarUserChip::onAvatarDownloadFinished(QNetworkReply* reply)
     reply->deleteLater();
 
     if (loaded.isNull()) {
-        _avatarLabel->setPixmap(makeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName));
+        _avatarLabel->setPixmap(MakeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName));
     } else {
-        _avatarLabel->setPixmap(makeCircularAvatarWithRing(loaded));
+        _avatarLabel->setPixmap(MakeCircularAvatarWithRing(loaded));
     }
-    relayoutInParent();
-    QTimer::singleShot(0, this, [this]() { relayoutInParent(); });
+    RelayoutInParent();
+    QTimer::singleShot(0, this, [this]() { RelayoutInParent(); });
 }

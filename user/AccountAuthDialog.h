@@ -11,20 +11,21 @@ class QCefView;
 class QWidget;
 
 /**
- * 嵌入 Web 的登录/注册/重置密码对话框。
+ * 嵌入 Web 的账户认证对话框（登录 / 注册 / 重置密码同页路由）。
  * 展示前宿主须已完成 QCef 全局初始化（见 main 中 QCefContext）。
  */
-class LoginDialog : public QDialog
+class AccountAuthDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    /** desktopLoginPageUrl 一般为 DesktopWeb::buildDesktopLoginUrl(frontendBase) */
-    explicit LoginDialog(QWidget* parent, const QUrl& desktopLoginPageUrl);
-    ~LoginDialog() override;
+    /** authPageUrl 一般为 DesktopWeb::buildDesktopLoginUrl(frontendBase) */
+    explicit AccountAuthDialog(QWidget* parent, const QUrl& authPageUrl);
+    ~AccountAuthDialog() override;
 
 signals:
-    void loginSucceeded(const QVariantMap& payload);
+    /** 认证成功（含 token 与 user），与 Web 侧约定字段一致 */
+    void AuthSucceeded(const QVariantMap& payload);
 
 private slots:
     void OnAddressChanged(const QString& url);
@@ -35,7 +36,7 @@ private:
     bool IsTrustedInvokeSource() const;
     bool IsTrustedUiSource() const;
     void InjectDesktopBridgeScript();
-    void HandleLoginSuccess(const QVariantMap& payload);
+    void HandleAuthSucceeded(const QVariantMap& payload);
     void SyncWindowTitleFromCurrentUrl();
     void UpdateUiFromUrl(const QUrl& url);
 
@@ -43,5 +44,5 @@ private:
     QWidget* m_loadingCover { nullptr };
     bool m_mainFrameShown { false };
     QUrl m_currentUrl;
-    QUrl m_loginPageUrl;
+    QUrl m_authPageUrl;
 };

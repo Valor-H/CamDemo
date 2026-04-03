@@ -12,21 +12,21 @@ class UserSession final : public QObject
 public:
     explicit UserSession(QObject* parent = nullptr);
 
-    bool isAuthenticated() const { return _authenticated; }
-    QString authToken() const { return _authToken; }
-    QVariantMap currentUser() const { return _currentUser; }
+    bool IsAuthenticated() const { return _authenticated; }
+    QString AuthToken() const { return _authToken; }
+    QVariantMap CurrentUser() const { return _currentUser; }
 
-    void applyFromLoginPayload(const QVariantMap& payload);
-    void applyFromProbe(const QVariantMap& data);
-    void logout();
+    void ApplyFromLoginPayload(const QVariantMap& payload);
+    void ApplyFromProbe(const QVariantMap& data);
+    void Logout();
 
 signals:
-    void authStateChanged(bool authenticated);
+    void AuthStateChanged(bool authenticated);
     /** 用户信息或 token 更新（含登录成功），供顶栏刷新头像等 */
-    void userProfileChanged();
+    void UserProfileChanged();
 
 private:
-    void setAuthenticatedState(bool on);
+    void SetAuthenticatedState(bool on);
 
     bool _authenticated { false };
     QString _authToken;

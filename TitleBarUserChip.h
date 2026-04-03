@@ -21,9 +21,9 @@ public:
     static constexpr int kNameWidthPx = 64;
 
     explicit TitleBarUserChip(QWidget* parent, const QUrl& apiBaseUrl);
-    void syncFromSession(const UserSession* session);
+    void SyncFromSession(const UserSession* session);
     /** 向上失效布局，适配 SARibbon 标题条不随子控件 sizeHint 自动重算的问题 */
-    void relayoutInParent();
+    void RelayoutInParent();
 
 signals:
     void loginRequested();
@@ -33,18 +33,18 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event) override;
 
 private slots:
-    void onAvatarDownloadFinished(QNetworkReply* reply);
+    void OnAvatarDownloadFinished(QNetworkReply* reply);
 
 private:
-    void abortAvatarRequest();
-    void applyLoggedOutAppearance();
-    void applyLoggedInAppearance(const UserSession* session);
-    QPixmap makeInitialAvatarWithRing(const QString& nickName, const QString& userName) const;
-    static QString pickInitialChar(const QString& nickName, const QString& userName);
+    void AbortAvatarRequest();
+    void ApplyLoggedOutAppearance();
+    void ApplyLoggedInAppearance(const UserSession* session);
+    QPixmap MakeInitialAvatarWithRing(const QString& nickName, const QString& userName) const;
+    static QString PickInitialChar(const QString& nickName, const QString& userName);
     /** 已登录/中性场景：内圈图 + 2px 白边 */
-    QPixmap makeCircularAvatarWithRing(const QPixmap& source) const;
-    QUrl resolveAvatarUrl(const QString& raw) const;
-    static QPixmap loadAvatarRaster(const char* resourcePath, int side);
+    QPixmap MakeCircularAvatarWithRing(const QPixmap& source) const;
+    QUrl ResolveAvatarUrl(const QString& raw) const;
+    static QPixmap LoadAvatarRaster(const char* resourcePath, int side);
 
     QUrl _apiBaseUrl;
 
