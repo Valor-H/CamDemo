@@ -41,7 +41,7 @@ private:
     void ApplyLoggedInAppearance(const UserSession* session);
     QPixmap MakeInitialAvatarWithRing(const QString& nickName, const QString& userName) const;
     static QString PickInitialChar(const QString& nickName, const QString& userName);
-    /** 已登录/中性场景：内圈图 + 2px 白边 */
+    /** 已登录/中性场景：圆形裁剪位图 */
     QPixmap MakeCircularAvatarWithRing(const QPixmap& source) const;
     QUrl ResolveAvatarUrl(const QString& raw) const;
     static QPixmap LoadAvatarRaster(const char* resourcePath, int side);

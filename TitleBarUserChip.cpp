@@ -183,18 +183,16 @@ QPixmap TitleBarUserChip::MakeInitialAvatarWithRing(const QString& nickName, con
     QPainter painter(&out);
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setPen(Qt::NoPen);
-    painter.setBrush(Qt::white);
-    painter.drawEllipse(0, 0, side, side);
-
+    // 整圆灰色底，无外侧留白环
     painter.setBrush(QColor(QStringLiteral("#999999")));
-    painter.drawEllipse(2, 2, side - 4, side - 4);
+    painter.drawEllipse(0, 0, side, side);
 
     QFont f = font();
     f.setBold(true);
     f.setPixelSize(11);
     painter.setFont(f);
     painter.setPen(QColor(Qt::white));
-    painter.drawText(QRect(2, 2, side - 4, side - 4), Qt::AlignCenter, PickInitialChar(nickName, userName));
+    painter.drawText(QRect(0, 0, side, side), Qt::AlignCenter, PickInitialChar(nickName, userName));
     return out;
 }
 
@@ -214,21 +212,19 @@ QPixmap TitleBarUserChip::MakeCircularAvatarWithRing(const QPixmap& source) cons
     const int side = TitleBarUserChip::kAvatarSide;
     QPixmap out(side, side);
     out.fill(Qt::transparent);
-    QPainter painter(&out);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(Qt::white);
-    painter.drawEllipse(0, 0, side, side);
     if (source.isNull()) {
         return out;
     }
-    const QPixmap scaled = source.scaled(side - 4, side - 4, Qt::KeepAspectRatioByExpanding,
-                                         Qt::SmoothTransformation);
-    QPainterPath inner;
-    inner.addEllipse(2, 2, side - 4, side - 4);
-    painter.setClipPath(inner);
-    const int x = 2 + (side - 4 - scaled.width()) / 2;
-    const int y = 2 + (side - 4 - scaled.height()) / 2;
+    QPainter painter(&out);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setPen(Qt::NoPen);
+    // 圆内铺满，无外环
+    const QPixmap scaled = source.scaled(side, side, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+    QPainterPath clip;
+    clip.addEllipse(0, 0, side, side);
+    painter.setClipPath(clip);
+    const int x = (side - scaled.width()) / 2;
+    const int y = (side - scaled.height()) / 2;
     painter.drawPixmap(x, y, scaled);
     return out;
 }
