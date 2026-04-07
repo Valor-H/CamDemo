@@ -1,38 +1,36 @@
 #include "TitleBarUserChip.h"
 #include "UserSession.h"
+#include "SARibbonToolButton.h"
 
-#include <QFontMetrics>
-#include <QSizePolicy>
 #include <QHBoxLayout>
-#include <QLabel>
 #include <QLayout>
-#include <QMouseEvent>
-#include <QTimer>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPixmap>
+#include <QSizePolicy>
+#include <QTimer>
+#include <QToolButton>
 #include <QUrl>
 #include <QSslSocket>
 
 namespace
 {
-constexpr int kLabelFontPx = 12;
 constexpr char kNeutralAvatarRes[] = ":/CamDemo/resource/avatar.png";
 
-/** 昵称区排版一致，仅颜色区分未登录 / 已登录 */
-QString nameLabelStyleSheet(const QString& colorHex)
+/** 透明底盖住全局白底；显式去掉 :hover/:pressed 高亮，tooltip 仍由 setToolTip 负责 */
+QString AvatarRibbonToolButtonStyleSheet()
 {
-    return QString(QStringLiteral("QLabel { color: %1; font-size: %2px; font-weight: 500; }"))
-        .arg(colorHex)
-        .arg(kLabelFontPx);
-}
-
-QString elideToNameWidth(const QString& text, const QFont& font)
-{
-    return QFontMetrics(font).elidedText(text, Qt::ElideRight, TitleBarUserChip::kNameWidthPx);
+    return QStringLiteral(
+        "SARibbonToolButton#CamTitleBarUserAvatar,"
+        "SARibbonToolButton#CamTitleBarUserAvatar:hover,"
+        "SARibbonToolButton#CamTitleBarUserAvatar:pressed {"
+        "  background-color: transparent;"
+        "  border: 1px solid transparent;"
+        "  border-radius: 4px;"
+        "}");
 }
 } // namespace
 
@@ -45,22 +43,30 @@ TitleBarUserChip::TitleBarUserChip(QWidget* parent, const QUrl& apiBaseUrl)
     setMinimumHeight(TitleBarUserChip::kAvatarSide);
     // 垂直用 Minimum，避免父级高度小于 sizeHint 时与 Fixed 策略冲突被压没
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    setAttribute(Qt::WA_TranslucentBackground, true);
+    setStyleSheet(QStringLiteral("TitleBarUserChip { background: transparent; }"));
 
-    _avatarLabel = new QLabel(this);
-    _avatarLabel->setFixedSize(TitleBarUserChip::kAvatarSide, TitleBarUserChip::kAvatarSide);
-    _avatarLabel->setScaledContents(false);
-    _avatarLabel->setAlignment(Qt::AlignCenter);
-
-    _nameLabel = new QLabel(this);
-    _nameLabel->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    _nameLabel->setFixedWidth(TitleBarUserChip::kNameWidthPx);
-    _nameLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+    _avatarButton = new SARibbonToolButton(this);
+    _avatarButton->setObjectName(QStringLiteral("CamTitleBarUserAvatar"));
+    _avatarButton->setAttribute(Qt::WA_StyledBackground, true);
+    _avatarButton->setStyleSheet(AvatarRibbonToolButtonStyleSheet());
+    _avatarButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    _avatarButton->setSmallIconSize(QSize(TitleBarUserChip::kAvatarSide, TitleBarUserChip::kAvatarSide));
+    _avatarButton->setFocusPolicy(Qt::NoFocus);
+    _avatarButton->setCursor(Qt::PointingHandCursor);
+    connect(_avatarButton, &QToolButton::clicked, this, [this]() {
+        if (_loggedIn) {
+            emit accountMenuRequested();
+        } else {
+            emit loginRequested();
+        }
+    });
 
     auto* lay = new QHBoxLayout(this);
     lay->setContentsMargins(0, 0, 6, 0);
-    lay->setSpacing(6);
-    lay->addWidget(_avatarLabel);
-    lay->addWidget(_nameLabel);
+    lay->setSpacing(0);
+    lay->setAlignment(Qt::AlignVCenter);
+    lay->addWidget(_avatarButton);
 
     connect(_nam, &QNetworkAccessManager::finished, this, &TitleBarUserChip::OnAvatarDownloadFinished);
 }
@@ -95,12 +101,8 @@ void TitleBarUserChip::ApplyLoggedOutAppearance()
     _fallbackNickName.clear();
     _fallbackUserName.clear();
     const QPixmap ph = LoadAvatarRaster(kNeutralAvatarRes, TitleBarUserChip::kAvatarSide * 2);
-    _avatarLabel->setPixmap(MakeCircularAvatarWithRing(ph));
-    _avatarLabel->setStyleSheet(QStringLiteral("QLabel { background: transparent; border: none; }"));
-    _nameLabel->setStyleSheet(nameLabelStyleSheet(QStringLiteral("#999999")));
-    _nameLabel->ensurePolished();
-    _nameLabel->setText(elideToNameWidth(tr("Not logged in"), _nameLabel->font()));
-    _nameLabel->setToolTip(QString());
+    _avatarButton->setIcon(QIcon(MakeCircularAvatarWithRing(ph)));
+    _avatarButton->setToolTip(tr("Not logged in"));
 }
 
 void TitleBarUserChip::ApplyLoggedInAppearance(const UserSession* session)
@@ -110,12 +112,10 @@ void TitleBarUserChip::ApplyLoggedInAppearance(const UserSession* session)
     const QString userName = u.value(QStringLiteral("userName")).toString().trimmed();
     _fallbackNickName = nick;
     _fallbackUserName = userName;
-    _nameLabel->setStyleSheet(nameLabelStyleSheet(QStringLiteral("#333333")));
-    _nameLabel->ensurePolished();
-    _nameLabel->setText(elideToNameWidth(nick, _nameLabel->font()));
-    _nameLabel->setToolTip(nick.isEmpty() ? QString() : nick);
-
-    _avatarLabel->setStyleSheet(QStringLiteral("QLabel { background: transparent; border: none; }"));
+    {
+        const QString tip = !nick.isEmpty() ? nick : userName;
+        _avatarButton->setToolTip(tip.trimmed().isEmpty() ? QString() : tip);
+    }
 
     const QPixmap loggedInPlaceholder = MakeCircularAvatarWithRing(
         LoadAvatarRaster(kNeutralAvatarRes, TitleBarUserChip::kAvatarSide * 2));
@@ -123,18 +123,18 @@ void TitleBarUserChip::ApplyLoggedInAppearance(const UserSession* session)
     const QString raw = u.value(QStringLiteral("avatar")).toString().trimmed();
     if (raw.isEmpty()) {
         // 无自定义头像 URL 时直接首字符占位（与多数账号默认无图一致）
-        _avatarLabel->setPixmap(MakeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName));
+        _avatarButton->setIcon(QIcon(MakeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName)));
         return;
     }
 
     const QUrl url = ResolveAvatarUrl(raw);
     if (!url.isValid()) {
-        _avatarLabel->setPixmap(MakeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName));
+        _avatarButton->setIcon(QIcon(MakeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName)));
         return;
     }
 
     // 下载中先保持中性占位，成功后换真实图；失败再首字符。
-    _avatarLabel->setPixmap(loggedInPlaceholder);
+    _avatarButton->setIcon(QIcon(loggedInPlaceholder));
     _avatarReply = _nam->get(QNetworkRequest(url));
 }
 
@@ -239,18 +239,6 @@ void TitleBarUserChip::AbortAvatarRequest()
     }
 }
 
-void TitleBarUserChip::mouseReleaseEvent(QMouseEvent* event)
-{
-    if (event->button() == Qt::LeftButton) {
-        if (_loggedIn) {
-            emit accountMenuRequested();
-        } else {
-            emit loginRequested();
-        }
-    }
-    QWidget::mouseReleaseEvent(event);
-}
-
 void TitleBarUserChip::OnAvatarDownloadFinished(QNetworkReply* reply)
 {
     if (!reply) {
@@ -269,9 +257,9 @@ void TitleBarUserChip::OnAvatarDownloadFinished(QNetworkReply* reply)
     reply->deleteLater();
 
     if (loaded.isNull()) {
-        _avatarLabel->setPixmap(MakeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName));
+        _avatarButton->setIcon(QIcon(MakeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName)));
     } else {
-        _avatarLabel->setPixmap(MakeCircularAvatarWithRing(loaded));
+        _avatarButton->setIcon(QIcon(MakeCircularAvatarWithRing(loaded)));
     }
     RelayoutInParent();
     QTimer::singleShot(0, this, [this]() { RelayoutInParent(); });

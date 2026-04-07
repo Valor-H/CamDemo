@@ -32,7 +32,8 @@ inline QUrl buildDesktopLoginUrl(const QUrl& frontendBase)
 /** 外置浏览器打开个人资料页（与前端 query 约定一致） */
 inline QUrl buildPersonalProfileUrl(const QUrl& frontendBase, const QString& authToken)
 {
-    QUrl url = frontendBase.resolved(QUrl(QStringLiteral("personalProfile/personal")));
+    // Keep desktop jump target aligned with cloud-cam-front router path.
+    QUrl url = frontendBase.resolved(QUrl(QStringLiteral("profile-personal")));
     if (!authToken.isEmpty()) {
         QUrlQuery q;
         q.addQueryItem(QStringLiteral("token"), authToken);

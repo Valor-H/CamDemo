@@ -3,13 +3,12 @@
 #include <QUrl>
 #include <QWidget>
 
-class QLabel;
-class QMouseEvent;
+class SARibbonToolButton;
 class QNetworkAccessManager;
 class QNetworkReply;
 class UserSession;
 
-/** 标题栏右侧：小尺寸头像 + 昵称，点击未登录弹登录 / 已登录出账户菜单 */
+/** 标题栏右侧：SARibbonToolButton 承载头像，悬停样式与 Ribbon 导航小按钮一致 */
 class TitleBarUserChip final : public QWidget
 {
     Q_OBJECT
@@ -17,8 +16,6 @@ class TitleBarUserChip final : public QWidget
 public:
     /** 头像边长；标题栏对齐高度勿小于此值 */
     static constexpr int kAvatarSide = 24;
-    /** 昵称文字区固定宽度，超出由 QFontMetrics 省略 */
-    static constexpr int kNameWidthPx = 64;
 
     explicit TitleBarUserChip(QWidget* parent, const QUrl& apiBaseUrl);
     void SyncFromSession(const UserSession* session);
@@ -28,9 +25,6 @@ public:
 signals:
     void loginRequested();
     void accountMenuRequested();
-
-protected:
-    void mouseReleaseEvent(QMouseEvent* event) override;
 
 private slots:
     void OnAvatarDownloadFinished(QNetworkReply* reply);
@@ -48,8 +42,7 @@ private:
 
     QUrl _apiBaseUrl;
 
-    QLabel* _avatarLabel { nullptr };
-    QLabel* _nameLabel { nullptr };
+    SARibbonToolButton* _avatarButton { nullptr };
     QNetworkAccessManager* _nam { nullptr };
     QNetworkReply* _avatarReply { nullptr };
     bool _loggedIn { false };
