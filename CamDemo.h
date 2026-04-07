@@ -31,7 +31,7 @@ private:
     void OnShowAccountMenu();
     void OnLogout();
     void OnOpenPersonalProfile();
-    void OnOpenSettingsPlaceholder();
+    void OnOpenTeam();
 
     Ui::CamDemoClass ui;
     QAction* _actionNew;
@@ -41,6 +41,6 @@ private:
     TitleBarUserChip* _userChip { nullptr };
     QMenu* _loginMenu { nullptr };
     QAction* _personalCenterAction { nullptr };
-    QAction* _settingsAction { nullptr };
+    QAction* _teamAction { nullptr };
     QAction* _logoutAction { nullptr };
 };

@@ -41,4 +41,16 @@ inline QUrl buildPersonalProfileUrl(const QUrl& frontendBase, const QString& aut
     }
     return url;
 }
+
+inline QUrl buildTeamUrl(const QUrl& frontendBase, const QString& authToken)
+{
+    // 与前端约定：/team
+    QUrl url = frontendBase.resolved(QUrl(QStringLiteral("team")));
+    if (!authToken.isEmpty()) {
+        QUrlQuery q;
+        q.addQueryItem(QStringLiteral("token"), authToken);
+        url.setQuery(q);
+    }
+    return url;
+}
 } // namespace DesktopWeb

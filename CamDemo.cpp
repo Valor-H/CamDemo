@@ -18,6 +18,7 @@
 
 #include <QDesktopServices>
 #include <QEvent>
+#include <QSettings>
 
 CamDemo::CamDemo(QWidget* parent)
     : SARibbonMainWindow(parent)
@@ -80,11 +81,11 @@ void CamDemo::InitUserChip()
 
     _loginMenu = new QMenu(this);
     _personalCenterAction = _loginMenu->addAction(tr("Personal center"));
-    _settingsAction = _loginMenu->addAction(tr("Settings"));
+    _teamAction = _loginMenu->addAction(tr("管理团队"));
     _logoutAction = _loginMenu->addAction(tr("Log out"));
     connect(_logoutAction, &QAction::triggered, this, &CamDemo::OnLogout);
     connect(_personalCenterAction, &QAction::triggered, this, &CamDemo::OnOpenPersonalProfile, Qt::UniqueConnection);
-    connect(_settingsAction, &QAction::triggered, this, &CamDemo::OnOpenSettingsPlaceholder, Qt::UniqueConnection);
+    connect(_teamAction, &QAction::triggered, this, &CamDemo::OnOpenTeam, Qt::UniqueConnection);
 
     connect(_userChip, &TitleBarUserChip::loginRequested, this, &CamDemo::OnShowAccountAuthDialog);
     connect(_userChip, &TitleBarUserChip::accountMenuRequested, this, &CamDemo::OnShowAccountMenu);
@@ -143,7 +144,12 @@ void CamDemo::OnLogout()
 
 void CamDemo::OnOpenPersonalProfile()
 {
-    const QString tok = _userAuth.Session()->AuthToken().trimmed();
+    // 直接从持久化存储读取 token，而不是从 session 读取
+    // 因为 session 的 token 可能还在异步加载中
+    QString tok;
+    QSettings settings(_userAuth.Config().settingsOrg, _userAuth.Config().settingsApp);
+    tok = settings.value(_userAuth.Config().authTokenKey).toString().trimmed();
+
     if (tok.isEmpty()) {
         OnShowAccountAuthDialog();
         return;
@@ -151,7 +157,16 @@ void CamDemo::OnOpenPersonalProfile()
     QDesktopServices::openUrl(DesktopWeb::buildPersonalProfileUrl(_userAuth.FrontendBaseUrl(), tok));
 }
 
-void CamDemo::OnOpenSettingsPlaceholder()
+void CamDemo::OnOpenTeam()
 {
-    QMessageBox::information(this, tr("Settings"), tr("Settings page is not available yet."));
+    // 仿照“个人中心”：从本地存储读 token，避免 session 尚未加载完成
+    QString tok;
+    QSettings settings(_userAuth.Config().settingsOrg, _userAuth.Config().settingsApp);
+    tok = settings.value(_userAuth.Config().authTokenKey).toString().trimmed();
+
+    if (tok.isEmpty()) {
+        OnShowAccountAuthDialog();
+        return;
+    }
+    QDesktopServices::openUrl(DesktopWeb::buildTeamUrl(_userAuth.FrontendBaseUrl(), tok));
 }
