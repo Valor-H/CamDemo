@@ -10,9 +10,7 @@
 #include <QWidget>
 #include <QPalette>
 #include <QSizePolicy>
-#include <QColor>
 
-#include <QCefSetting.h>
 #include <QCefView.h>
 
 AccountAuthDialog::AccountAuthDialog(QWidget* parent, const QUrl& authPageUrl)
@@ -39,9 +37,8 @@ AccountAuthDialog::AccountAuthDialog(QWidget* parent, const QUrl& authPageUrl)
     const QString startUrl = m_authPageUrl.toString();
     m_currentUrl = m_authPageUrl;
 
-    QCefSetting setting;
-    setting.setBackgroundColor(QColor(Qt::white));
-    m_view = new QCefView(startUrl, &setting, this);
+    // 不传 QCefSetting：全局已开 OSR，部分版本在 per-view setBackgroundColor 时会在 Qt 侧写坏内存
+    m_view = new QCefView(startUrl, nullptr, this);
 
     m_loadingCover = new QWidget(this);
     m_loadingCover->setAutoFillBackground(true);

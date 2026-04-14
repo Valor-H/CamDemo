@@ -1,11 +1,13 @@
 #pragma once
 
+#include "UserApi.h"
+
 #include <QObject>
 #include <QString>
 #include <QVariantMap>
 
 /** 桌面端登录会话：与 CEF localStorage / 登录对话框 payload 字段约定一致 */
-class UserSession final : public QObject
+class USER_API UserSession final : public QObject
 {
     Q_OBJECT
 

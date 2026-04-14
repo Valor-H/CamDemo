@@ -98,3 +98,5 @@ CMakeLists.txt.user*
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+3rdparty/

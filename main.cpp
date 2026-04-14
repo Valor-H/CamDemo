@@ -1,14 +1,9 @@
 #include "CamDemo.h"
+#include "CefInitializer.h"
 #include <QCoreApplication>
-#include <QDir>
 #include <QString>
-#include <QStandardPaths>
 #include <QTranslator>
 #include <QtWidgets/QApplication>
-#include <QColor>
-
-#include <QCefConfig.h>
-#include <QCefContext.h>
 
 int main(int argc, char *argv[])
 {
@@ -21,28 +16,7 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
 
-    QCefConfig config;
-    config.setLogLevel(QCefConfig::LOGSEVERITY_DEFAULT);
-    config.setBridgeObjectName(QStringLiteral("CallBridge"));
-    config.setBuiltinSchemeName(QStringLiteral("CefView"));
-    config.setRemoteDebuggingPort(0);
-    config.setWindowlessRenderingEnabled(true);
-    config.setStandaloneMessageLoopEnabled(true);
-    config.setSandboxDisabled(true);
-    // 设置 CEF 默认背景为白色，避免 windowless 首帧未渲染时出现黑底闪烁。
-    config.setBackgroundColor(QColor(Qt::white));
-
-#if defined(Q_OS_WIN) || defined(Q_OS_LINUX)
-    const QString appDir = QCoreApplication::applicationDirPath();
-    const QString cefBundle = QDir(appDir).filePath(QStringLiteral("CefView"));
-    config.setResourceDirectoryPath(QDir(cefBundle).filePath(QStringLiteral("Resources")));
-    config.setLocalesDirectoryPath(QDir(cefBundle).filePath(QStringLiteral("locales")));
-#endif
-
-    config.setCachePath(
-        QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + QStringLiteral("/CamDemo/cef"));
-
-    QCefContext cefContext(&app, argc, argv, &config);
+    CefInitializer::Init(&app, argc, argv);
 
     // 在应用启动时加载中文翻译；若缺失 .qm 则保持英文原文。
     QTranslator appTr;
