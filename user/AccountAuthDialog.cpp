@@ -20,8 +20,6 @@ AccountAuthDialog::AccountAuthDialog(QWidget* parent, const QUrl& authPageUrl)
     setWindowTitle(tr("Login"));
 
     setFixedSize(450, 550);
-    // 首帧前整窗透明，避免 CEF 未合成时出现黑底；就绪后一次性设为 1（无渐入）
-    setWindowOpacity(0.0);
 
     setAutoFillBackground(true);
     {
@@ -37,8 +35,7 @@ AccountAuthDialog::AccountAuthDialog(QWidget* parent, const QUrl& authPageUrl)
     const QString startUrl = m_authPageUrl.toString();
     m_currentUrl = m_authPageUrl;
 
-    // 不传 QCefSetting：全局已开 OSR，部分版本在 per-view setBackgroundColor 时会在 Qt 侧写坏内存
-    m_view = new QCefView(startUrl, nullptr, this);
+    m_view = new QCefView(this);
 
     m_loadingCover = new QWidget(this);
     m_loadingCover->setAutoFillBackground(true);
@@ -48,6 +45,7 @@ AccountAuthDialog::AccountAuthDialog(QWidget* parent, const QUrl& authPageUrl)
     layout->addWidget(m_view);
     layout->addWidget(m_loadingCover);
     layout->setCurrentWidget(m_loadingCover);
+    m_loadingCover->raise();
 
     connect(m_view,
             &QCefView::addressChanged,
@@ -67,6 +65,7 @@ AccountAuthDialog::AccountAuthDialog(QWidget* parent, const QUrl& authPageUrl)
             [this](const QCefBrowserId&, const QCefFrameId&, const QString& method, const QVariantList& arguments) {
                 OnInvokeMethod(method, arguments);
             });
+    m_view->navigateToUrl(startUrl);
 }
 
 AccountAuthDialog::~AccountAuthDialog()
@@ -105,7 +104,6 @@ void AccountAuthDialog::UpdateUiFromUrl(const QUrl& url)
     if (!IsTrustedUiSource()) {
         return;
     }
-    // 只做标题同步，不做窗口 resize
     SyncWindowTitleFromCurrentUrl();
 }
 
@@ -137,14 +135,10 @@ void AccountAuthDialog::OnLoadEnd(int httpStatusCode)
     if (!m_mainFrameShown) {
         m_mainFrameShown = true;
         if (m_loadingCover) {
-            if (QStackedLayout* stacked = qobject_cast<QStackedLayout*>(layout())) {
-                stacked->setCurrentWidget(m_view);
-            }
             m_loadingCover->hide();
             m_loadingCover->deleteLater();
             m_loadingCover = nullptr;
         }
-        setWindowOpacity(1.0);
     }
 }
 

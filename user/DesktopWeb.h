@@ -1,10 +1,12 @@
 #pragma once
 
+#include "qj_user_global.h"
+
 #include <QString>
 #include <QUrl>
 #include <QUrlQuery>
 
-/** 桌面端嵌入前端 URL（纯函数，便于单测与多宿主复用） */
+QJ_NAMESPACE_FIT_QJ_USER_BEGIN
 namespace DesktopWeb
 {
 inline QString desktopClientQueryKey()
@@ -29,10 +31,8 @@ inline QUrl buildDesktopLoginUrl(const QUrl& frontendBase)
     return url;
 }
 
-/** 外置浏览器打开个人资料页（与前端 query 约定一致） */
 inline QUrl buildPersonalProfileUrl(const QUrl& frontendBase, const QString& authToken)
 {
-    // Keep desktop jump target aligned with cloud-cam-front router path.
     QUrl url = frontendBase.resolved(QUrl(QStringLiteral("profile-personal")));
     if (!authToken.isEmpty()) {
         QUrlQuery q;
@@ -44,7 +44,6 @@ inline QUrl buildPersonalProfileUrl(const QUrl& frontendBase, const QString& aut
 
 inline QUrl buildTeamUrl(const QUrl& frontendBase, const QString& authToken)
 {
-    // 与前端约定：/team
     QUrl url = frontendBase.resolved(QUrl(QStringLiteral("team")));
     if (!authToken.isEmpty()) {
         QUrlQuery q;
@@ -53,4 +52,5 @@ inline QUrl buildTeamUrl(const QUrl& frontendBase, const QString& authToken)
     }
     return url;
 }
-} // namespace DesktopWeb
+}
+QJ_NAMESPACE_FIT_QJ_USER_END

@@ -1,9 +1,12 @@
 #pragma once
 
+#include "qj_user_global.h"
+
 #include <QString>
 #include <QUrl>
 
-/** 用户模块运行时配置（宿主可覆盖 org/app 与端点） */
+QJ_NAMESPACE_FIT_QJ_USER_BEGIN
+
 struct UserModuleConfig
 {
     QUrl apiBaseUrl { QStringLiteral("http://localhost:8080/") };
@@ -12,3 +15,5 @@ struct UserModuleConfig
     QString settingsApp { QStringLiteral("CamDemo") };
     QString authTokenKey { QStringLiteral("auth/token") };
 };
+
+QJ_NAMESPACE_FIT_QJ_USER_END

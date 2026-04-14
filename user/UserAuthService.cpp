@@ -7,6 +7,8 @@
 #include <QSettings>
 #include <QWidget>
 
+QJ_USING_NAMESPACE_FIT_QJ_USER
+
 namespace
 {
 constexpr int kWindowActivateRefreshDebounceMs = 800;
@@ -20,7 +22,9 @@ QString apiBaseStringForClient(const QUrl& u)
     }
     return s;
 }
-} // namespace
+}
+
+QJ_NAMESPACE_FIT_QJ_USER_BEGIN
 
 UserAuthService::UserAuthService(const UserModuleConfig& cfg, QObject* parent)
     : QObject(parent)
@@ -220,3 +224,5 @@ void UserAuthService::TryRefreshUserProfileOnWindowActivate()
     _lastWindowActivateRefreshAt.restart();
     StartDirectUserHydration(token, true);
 }
+
+QJ_NAMESPACE_FIT_QJ_USER_END

@@ -5,7 +5,9 @@ namespace
 const QString kTokenKey = QStringLiteral("token");
 const QString kUserKey = QStringLiteral("user");
 const QString kLoggedInKey = QStringLiteral("loggedIn");
-} // namespace
+}
+
+QJ_NAMESPACE_FIT_QJ_USER_BEGIN
 
 UserSession::UserSession(QObject* parent)
     : QObject(parent)
@@ -53,8 +55,6 @@ void UserSession::ApplyFromProbe(const QVariantMap& data)
 
     const QString token = data.value(kTokenKey).toString().trimmed();
     _authToken = token;
-    // 启动恢复时只有 token，不再从缓存读用户信息
-    // 用户信息由前端根据 token 重新从后端拉取并通过 ApplyFromLoginPayload 更新
     _currentUser.clear();
     SetAuthenticatedState(true);
     emit UserProfileChanged();
@@ -67,3 +67,5 @@ void UserSession::Logout()
     SetAuthenticatedState(false);
     emit UserProfileChanged();
 }
+
+QJ_NAMESPACE_FIT_QJ_USER_END

@@ -16,11 +16,12 @@
 #include <QUrl>
 #include <QSslSocket>
 
+using qianjizn::qj_user::UserSession;
+
 namespace
 {
 constexpr char kNeutralAvatarRes[] = ":/CamDemo/resource/avatar.png";
 
-/** 透明底盖住全局白底；显式去掉 :hover/:pressed 高亮，tooltip 仍由 setToolTip 负责 */
 QString AvatarRibbonToolButtonStyleSheet()
 {
     return QStringLiteral(
@@ -32,7 +33,7 @@ QString AvatarRibbonToolButtonStyleSheet()
         "  border-radius: 4px;"
         "}");
 }
-} // namespace
+}
 
 TitleBarUserChip::TitleBarUserChip(QWidget* parent, const QUrl& apiBaseUrl)
     : QWidget(parent)
@@ -41,7 +42,6 @@ TitleBarUserChip::TitleBarUserChip(QWidget* parent, const QUrl& apiBaseUrl)
 {
     setCursor(Qt::PointingHandCursor);
     setMinimumHeight(TitleBarUserChip::kAvatarSide);
-    // 垂直用 Minimum，避免父级高度小于 sizeHint 时与 Fixed 策略冲突被压没
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     setAttribute(Qt::WA_TranslucentBackground, true);
     setStyleSheet(QStringLiteral("TitleBarUserChip { background: transparent; }"));
@@ -122,7 +122,6 @@ void TitleBarUserChip::ApplyLoggedInAppearance(const UserSession* session)
 
     const QString raw = u.value(QStringLiteral("avatar")).toString().trimmed();
     if (raw.isEmpty()) {
-        // 无自定义头像 URL 时直接首字符占位（与多数账号默认无图一致）
         _avatarButton->setIcon(QIcon(MakeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName)));
         return;
     }
@@ -133,7 +132,6 @@ void TitleBarUserChip::ApplyLoggedInAppearance(const UserSession* session)
         return;
     }
 
-    // 下载中先保持中性占位，成功后换真实图；失败再首字符。
     _avatarButton->setIcon(QIcon(loggedInPlaceholder));
     _avatarReply = _nam->get(QNetworkRequest(url));
 }
@@ -145,11 +143,9 @@ QUrl TitleBarUserChip::ResolveAvatarUrl(const QString& raw) const
     }
     QUrl u = QUrl::fromUserInput(raw);
     if (u.isRelative()) {
-        // 后端通常返回 /profile/... 这类相对路径，应以 API 基址解析。
         return _apiBaseUrl.resolved(u);
     }
 
-    // Windows 发布环境若未携带 OpenSSL，Qt 可能无法发起 HTTPS 请求；对 OSS 链接做协议降级兜底。
     if (u.scheme().compare(QStringLiteral("https"), Qt::CaseInsensitive) == 0
         && !QSslSocket::supportsSsl()) {
         u.setScheme(QStringLiteral("http"));
@@ -183,7 +179,6 @@ QPixmap TitleBarUserChip::MakeInitialAvatarWithRing(const QString& nickName, con
     QPainter painter(&out);
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setPen(Qt::NoPen);
-    // 整圆灰色底，无外侧留白环
     painter.setBrush(QColor(QStringLiteral("#999999")));
     painter.drawEllipse(0, 0, side, side);
 
@@ -218,7 +213,6 @@ QPixmap TitleBarUserChip::MakeCircularAvatarWithRing(const QPixmap& source) cons
     QPainter painter(&out);
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setPen(Qt::NoPen);
-    // 圆内铺满，无外环
     const QPixmap scaled = source.scaled(side, side, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
     QPainterPath clip;
     clip.addEllipse(0, 0, side, side);

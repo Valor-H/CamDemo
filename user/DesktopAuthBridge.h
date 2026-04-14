@@ -2,10 +2,6 @@
 
 #include <QString>
 
-/**
- * 与前端 CallBridge 约定的方法名及注入脚本（与 AccountAuthDialog 配套）。
- * 脚本仅依赖 window.CallBridge.invoke，便于单处维护与审阅。
- */
 namespace DesktopAuthBridge
 {
 inline QString MethodOnLoginSuccess()
@@ -18,7 +14,6 @@ inline QString MethodRouteChanged()
     return QStringLiteral("Desktop.RouteChanged");
 }
 
-/** 主帧 load 后注入，补齐路由监听与 window.__DESKTOP_QT__ */
 inline QString BridgeInjectScript()
 {
     return QStringLiteral(R"JS(
@@ -71,4 +66,4 @@ inline QString BridgeInjectScript()
       })();
     )JS");
 }
-} // namespace DesktopAuthBridge
+}

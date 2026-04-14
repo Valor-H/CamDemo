@@ -20,6 +20,11 @@
 #include <QEvent>
 #include <QSettings>
 
+using qianjizn::qj_user::UserAuthService;
+using qianjizn::qj_user::UserModuleConfig;
+using qianjizn::qj_user::UserSession;
+QJ_USING_NAMESPACE_FIT_QJ_USER
+
 CamDemo::CamDemo(QWidget* parent)
     : SARibbonMainWindow(parent)
     , _userAuth(UserModuleConfig {})
@@ -144,8 +149,6 @@ void CamDemo::OnLogout()
 
 void CamDemo::OnOpenPersonalProfile()
 {
-    // 直接从持久化存储读取 token，而不是从 session 读取
-    // 因为 session 的 token 可能还在异步加载中
     QString tok;
     QSettings settings(_userAuth.Config().settingsOrg, _userAuth.Config().settingsApp);
     tok = settings.value(_userAuth.Config().authTokenKey).toString().trimmed();
@@ -159,7 +162,6 @@ void CamDemo::OnOpenPersonalProfile()
 
 void CamDemo::OnOpenTeam()
 {
-    // 仿照“个人中心”：从本地存储读 token，避免 session 尚未加载完成
     QString tok;
     QSettings settings(_userAuth.Config().settingsOrg, _userAuth.Config().settingsApp);
     tok = settings.value(_userAuth.Config().authTokenKey).toString().trimmed();

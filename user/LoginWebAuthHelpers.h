@@ -3,7 +3,6 @@
 #include <QUrl>
 #include <QVariantMap>
 
-/** 登录 Web 页：路径解析、载荷清洗、与 DesktopWeb 一致的来源校验（可单测） */
 namespace LoginWebAuth
 {
 enum class AuthRoute
@@ -20,4 +19,4 @@ QVariantMap SanitizeLoginPayload(const QVariantMap& input);
 
 bool IsTrustedUiSource(const QUrl& currentUrl, const QUrl& loginPageUrl);
 bool IsTrustedInvokeSource(const QUrl& currentUrl, const QUrl& loginPageUrl);
-} // namespace LoginWebAuth
+}

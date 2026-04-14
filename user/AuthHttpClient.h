@@ -8,28 +8,18 @@
 #include <functional>
 #include <memory>
 
-/**
- * 基于 libhv 的异步 HTTP 客户端。
- *
- * 请求在 libhv I/O 线程中发起；回调通过 Qt 事件队列（QueuedConnection）
- * 投递回 Qt 主线程，因此回调中可以安全访问 Qt/UI 对象。
- *
- * CancelAll() 使所有进行中请求的回调成为空操作，
- * 包括已进入 Qt 事件队列但尚未执行的回调。
- */
 class AuthHttpClient : public QObject
 {
     Q_OBJECT
 
 public:
-    /** 回调收到的统一响应描述 */
     struct Response
     {
-        bool        networkOk { false };  ///< false = 连接/超时等网络层失败
-        int         httpStatus { 0 };     ///< HTTP 状态码（200、401 等）
-        int         bizCode { -1 };       ///< AjaxResult.code（解析失败时为 -1）
-        QString     bizMsg;               ///< AjaxResult.msg
-        QVariantMap data;                 ///< AjaxResult.data 解析为 QVariantMap
+        bool        networkOk { false };
+        int         httpStatus { 0 };
+        int         bizCode { -1 };
+        QString     bizMsg;
+        QVariantMap data;
     };
 
     using Callback = std::function<void(const Response&)>;
@@ -37,19 +27,11 @@ public:
     explicit AuthHttpClient(const QString& baseUrl, QObject* parent = nullptr);
     ~AuthHttpClient() override;
 
-    /**
-     * 异步 POST baseUrl + path，携带 Bearer token，超时 timeoutSec 秒。
-     * callback 保证在 Qt 主线程执行。
-     */
     void Post(const QString& path,
               const QString& bearerToken,
               int            timeoutSec,
               Callback       callback);
 
-    /**
-     * 使所有进行中请求的回调成为空操作（线程安全，可在任意线程调用）。
-     * 调用后先前注册的所有 callback 均不会被执行。
-     */
     void CancelAll();
 
     QString BaseUrl() const { return _baseUrl; }

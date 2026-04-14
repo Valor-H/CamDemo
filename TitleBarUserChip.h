@@ -1,25 +1,27 @@
 #pragma once
 
+#include "qj_user_global.h"
+
 #include <QUrl>
 #include <QWidget>
 
 class SARibbonToolButton;
 class QNetworkAccessManager;
 class QNetworkReply;
-class UserSession;
 
-/** 标题栏右侧：SARibbonToolButton 承载头像，悬停样式与 Ribbon 导航小按钮一致 */
+QJ_NAMESPACE_FIT_QJ_USER_BEGIN
+class UserSession;
+QJ_NAMESPACE_FIT_QJ_USER_END
+
 class TitleBarUserChip final : public QWidget
 {
     Q_OBJECT
 
 public:
-    /** 头像边长；标题栏对齐高度勿小于此值 */
     static constexpr int kAvatarSide = 24;
 
     explicit TitleBarUserChip(QWidget* parent, const QUrl& apiBaseUrl);
-    void SyncFromSession(const UserSession* session);
-    /** 向上失效布局，适配 SARibbon 标题条不随子控件 sizeHint 自动重算的问题 */
+    void SyncFromSession(const qianjizn::qj_user::UserSession* session);
     void RelayoutInParent();
 
 signals:
@@ -32,10 +34,9 @@ private slots:
 private:
     void AbortAvatarRequest();
     void ApplyLoggedOutAppearance();
-    void ApplyLoggedInAppearance(const UserSession* session);
+    void ApplyLoggedInAppearance(const qianjizn::qj_user::UserSession* session);
     QPixmap MakeInitialAvatarWithRing(const QString& nickName, const QString& userName) const;
     static QString PickInitialChar(const QString& nickName, const QString& userName);
-    /** 已登录/中性场景：圆形裁剪位图 */
     QPixmap MakeCircularAvatarWithRing(const QPixmap& source) const;
     QUrl ResolveAvatarUrl(const QString& raw) const;
     static QPixmap LoadAvatarRaster(const char* resourcePath, int side);
@@ -49,4 +50,3 @@ private:
     QString _fallbackNickName;
     QString _fallbackUserName;
 };
-

@@ -1,13 +1,18 @@
 #pragma once
 
-#include "UserApi.h"
+#include "qj_user_global.h"
 
 #include <QObject>
 #include <QString>
 #include <QVariantMap>
 
-/** 桌面端登录会话：与 CEF localStorage / 登录对话框 payload 字段约定一致 */
-class USER_API UserSession final : public QObject
+#ifdef Q_MOC_RUN
+namespace qianjizn { namespace qj_user {
+#else
+QJ_NAMESPACE_FIT_QJ_USER_BEGIN
+#endif
+
+class QJ_USER_EXPORT UserSession final : public QObject
 {
     Q_OBJECT
 
@@ -24,7 +29,6 @@ public:
 
 signals:
     void AuthStateChanged(bool authenticated);
-    /** 用户信息或 token 更新（含登录成功），供顶栏刷新头像等 */
     void UserProfileChanged();
 
 private:
@@ -34,3 +38,9 @@ private:
     QString _authToken;
     QVariantMap _currentUser;
 };
+
+#ifdef Q_MOC_RUN
+} }
+#else
+QJ_NAMESPACE_FIT_QJ_USER_END
+#endif

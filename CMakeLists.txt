@@ -41,7 +41,7 @@ set_target_properties(libhv PROPERTIES
     INTERFACE_LINK_LIBRARIES "secur32;crypt32;winmm;iphlpapi;ws2_32"
 )
 
-# ========== 5. user 模块 ==========
+# ========== 5. qj_user 模块 ==========
 add_subdirectory(user)
 
 # ========== 6. 主程序 ==========
@@ -64,7 +64,7 @@ add_dependencies(CamDemo CamDemoTranslations)
 # ========== 8. 链接 ==========
 # 注意：QCefView 必须同时链接，静态库依赖不会自动传递
 target_link_libraries(CamDemo PRIVATE
-    user
+    qj_user
     QCefView
     SARibbonBar::SARibbonBar
     Qt5::Core

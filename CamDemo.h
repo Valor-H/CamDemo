@@ -25,7 +25,6 @@ private slots:
 private:
     void InitRibbonBar();
     void InitUserChip();
-    /** 标题栏高度与布局链同步（探测登录后 sizeHint 变化时需 invalidate，否则控件几何错误） */
     void SyncUserChipIntoTitleBar();
     void OnShowAccountAuthDialog();
     void OnShowAccountMenu();
@@ -37,7 +36,7 @@ private:
     QAction* _actionNew;
     QAction* _actionOpen;
     QAction* _actionSave;
-    UserAuthService _userAuth;
+    qianjizn::qj_user::UserAuthService _userAuth;
     TitleBarUserChip* _userChip { nullptr };
     QMenu* _loginMenu { nullptr };
     QAction* _personalCenterAction { nullptr };

@@ -2,6 +2,7 @@
 
 #include "UserModuleConfig.h"
 #include "UserSession.h"
+#include "qj_user_global.h"
 
 #include <QElapsedTimer>
 #include <QObject>
@@ -9,12 +10,15 @@
 #include <QUrl>
 
 class AuthHttpClient;
+class QWidget;
 
-/**
- * 登录注册相关门面：持久化 token、拉取当前用户、刷新 token、窗口激活节流补水。
- * 展示账户认证对话框前宿主须已完成 QCef 全局初始化。
- */
-class UserAuthService final : public QObject
+#ifdef Q_MOC_RUN
+namespace qianjizn { namespace qj_user {
+#else
+QJ_NAMESPACE_FIT_QJ_USER_BEGIN
+#endif
+
+class QJ_USER_EXPORT UserAuthService final : public QObject
 {
     Q_OBJECT
 
@@ -57,3 +61,9 @@ private:
     QElapsedTimer _lastWindowActivateRefreshAt;
     bool _userHydrationInFlight { false };
 };
+
+#ifdef Q_MOC_RUN
+} }
+#else
+QJ_NAMESPACE_FIT_QJ_USER_END
+#endif

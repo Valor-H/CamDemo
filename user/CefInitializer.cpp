@@ -11,14 +11,12 @@ void CefInitializer::Init(QApplication* app, int argc, char* argv[]) {
     config.setBridgeObjectName(QStringLiteral("CallBridge"));
     config.setBuiltinSchemeName(QStringLiteral("CefView"));
     config.setRemoteDebuggingPort(0);
-    config.setWindowlessRenderingEnabled(true);
+    config.setWindowlessRenderingEnabled(false);
     config.setStandaloneMessageLoopEnabled(true);
     config.setSandboxDisabled(true);
-    // config.setBackgroundColor(QColor(Qt::white)); // 暂时禁用，QCefView 版本可能不兼容
 #if defined(Q_OS_WIN) || defined(Q_OS_LINUX)
     const QString appDir = QCoreApplication::applicationDirPath();
     const QString cefBundle = QDir(appDir).filePath(QStringLiteral("CefView"));
-    // resources.pak 等文件直接在 CefView/ 下，不在 CefView/Resources/ 下
     config.setResourceDirectoryPath(cefBundle);
     config.setLocalesDirectoryPath(QDir(cefBundle).filePath(QStringLiteral("locales")));
 #endif

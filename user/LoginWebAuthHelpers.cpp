@@ -4,6 +4,8 @@
 
 #include <QUrlQuery>
 
+QJ_USING_NAMESPACE_FIT_QJ_USER
+
 namespace LoginWebAuth
 {
 QString ExtractAuthRoutePath(const QUrl& url)
@@ -84,4 +86,4 @@ bool IsTrustedInvokeSource(const QUrl& currentUrl, const QUrl& loginPageUrl)
     return query.queryItemValue(DesktopWeb::desktopClientQueryKey())
         == DesktopWeb::desktopClientQueryValue();
 }
-} // namespace LoginWebAuth
+}
