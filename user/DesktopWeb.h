@@ -7,8 +7,6 @@
 #include <QUrlQuery>
 
 QJ_NAMESPACE_FIT_QJ_USER_BEGIN
-namespace DesktopWeb
-{
 inline QString desktopClientQueryKey()
 {
     return QStringLiteral("client");
@@ -51,6 +49,5 @@ inline QUrl buildTeamUrl(const QUrl& frontendBase, const QString& authToken)
         url.setQuery(q);
     }
     return url;
-}
 }
 QJ_NAMESPACE_FIT_QJ_USER_END

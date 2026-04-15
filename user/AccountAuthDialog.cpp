@@ -5,11 +5,10 @@
 
 #include <QUrl>
 #include <QVariantList>
-#include <QStackedLayout>
+#include <QVBoxLayout>
 #include <QString>
 #include <QWidget>
 #include <QPalette>
-#include <QSizePolicy>
 
 #include <QCefView.h>
 
@@ -28,24 +27,17 @@ AccountAuthDialog::AccountAuthDialog(QWidget* parent, const QUrl& authPageUrl)
         setPalette(pal);
     }
 
-    auto* layout = new QStackedLayout(this);
+    auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->setStackingMode(QStackedLayout::StackAll);
 
     const QString startUrl = m_authPageUrl.toString();
     m_currentUrl = m_authPageUrl;
 
     m_view = new QCefView(this);
-
-    m_loadingCover = new QWidget(this);
-    m_loadingCover->setAutoFillBackground(true);
-    m_loadingCover->setPalette(palette());
-    m_loadingCover->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    m_view->setAutoFillBackground(true);
+    m_view->setPalette(palette());
 
     layout->addWidget(m_view);
-    layout->addWidget(m_loadingCover);
-    layout->setCurrentWidget(m_loadingCover);
-    m_loadingCover->raise();
 
     connect(m_view,
             &QCefView::addressChanged,
@@ -83,6 +75,9 @@ bool AccountAuthDialog::IsTrustedUiSource() const
 
 void AccountAuthDialog::InjectDesktopBridgeScript()
 {
+    if (!m_view) {
+        return;
+    }
     m_view->executeJavascript(QCefView::MainFrameID, DesktopAuthBridge::BridgeInjectScript(),
                               m_authPageUrl.toString());
 }
@@ -131,15 +126,6 @@ void AccountAuthDialog::OnLoadEnd(int httpStatusCode)
     Q_UNUSED(httpStatusCode);
     InjectDesktopBridgeScript();
     UpdateUiFromUrl(m_currentUrl);
-
-    if (!m_mainFrameShown) {
-        m_mainFrameShown = true;
-        if (m_loadingCover) {
-            m_loadingCover->hide();
-            m_loadingCover->deleteLater();
-            m_loadingCover = nullptr;
-        }
-    }
 }
 
 void AccountAuthDialog::OnInvokeMethod(const QString& method, const QVariantList& arguments)

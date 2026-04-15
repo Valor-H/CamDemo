@@ -20,14 +20,10 @@
 #include <QEvent>
 #include <QSettings>
 
-using qianjizn::qj_user::UserAuthService;
-using qianjizn::qj_user::UserModuleConfig;
 using qianjizn::qj_user::UserSession;
-QJ_USING_NAMESPACE_FIT_QJ_USER
 
 CamDemo::CamDemo(QWidget* parent)
     : SARibbonMainWindow(parent)
-    , _userAuth(UserModuleConfig {})
 {
     ui.setupUi(this);
     setWindowTitle(tr("CamDemo"));
@@ -157,7 +153,7 @@ void CamDemo::OnOpenPersonalProfile()
         OnShowAccountAuthDialog();
         return;
     }
-    QDesktopServices::openUrl(DesktopWeb::buildPersonalProfileUrl(_userAuth.FrontendBaseUrl(), tok));
+    QDesktopServices::openUrl(qianjizn::qj_user::buildPersonalProfileUrl(_userAuth.FrontendBaseUrl(), tok));
 }
 
 void CamDemo::OnOpenTeam()
@@ -170,5 +166,5 @@ void CamDemo::OnOpenTeam()
         OnShowAccountAuthDialog();
         return;
     }
-    QDesktopServices::openUrl(DesktopWeb::buildTeamUrl(_userAuth.FrontendBaseUrl(), tok));
+    QDesktopServices::openUrl(qianjizn::qj_user::buildTeamUrl(_userAuth.FrontendBaseUrl(), tok));
 }

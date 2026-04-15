@@ -90,18 +90,18 @@ void TitleBarUserChip::SyncFromSession(const UserSession* session)
     AbortAvatarRequest();
     _loggedIn = session && session->IsAuthenticated();
     if (!_loggedIn) {
-        ApplyLoggedOutAppearance();
+        ApplyDefaultAvatar();
         return;
     }
     ApplyLoggedInAppearance(session);
 }
 
-void TitleBarUserChip::ApplyLoggedOutAppearance()
+void TitleBarUserChip::ApplyDefaultAvatar()
 {
     _fallbackNickName.clear();
     _fallbackUserName.clear();
     const QPixmap ph = LoadAvatarRaster(kNeutralAvatarRes, TitleBarUserChip::kAvatarSide * 2);
-    _avatarButton->setIcon(QIcon(MakeCircularAvatarWithRing(ph)));
+    _avatarButton->setIcon(QIcon(MakeCircularAvatar(ph)));
     _avatarButton->setToolTip(tr("Not logged in"));
 }
 
@@ -117,7 +117,7 @@ void TitleBarUserChip::ApplyLoggedInAppearance(const UserSession* session)
         _avatarButton->setToolTip(tip.trimmed().isEmpty() ? QString() : tip);
     }
 
-    const QPixmap loggedInPlaceholder = MakeCircularAvatarWithRing(
+    const QPixmap loggedInPlaceholder = MakeCircularAvatar(
         LoadAvatarRaster(kNeutralAvatarRes, TitleBarUserChip::kAvatarSide * 2));
 
     const QString raw = u.value(QStringLiteral("avatar")).toString().trimmed();
@@ -202,7 +202,7 @@ QPixmap TitleBarUserChip::LoadAvatarRaster(const char* resourcePath, int side)
     return loaded.scaled(side, side, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
 }
 
-QPixmap TitleBarUserChip::MakeCircularAvatarWithRing(const QPixmap& source) const
+QPixmap TitleBarUserChip::MakeCircularAvatar(const QPixmap& source) const
 {
     const int side = TitleBarUserChip::kAvatarSide;
     QPixmap out(side, side);
@@ -253,7 +253,7 @@ void TitleBarUserChip::OnAvatarDownloadFinished(QNetworkReply* reply)
     if (loaded.isNull()) {
         _avatarButton->setIcon(QIcon(MakeInitialAvatarWithRing(_fallbackNickName, _fallbackUserName)));
     } else {
-        _avatarButton->setIcon(QIcon(MakeCircularAvatarWithRing(loaded)));
+        _avatarButton->setIcon(QIcon(MakeCircularAvatar(loaded)));
     }
     RelayoutInParent();
     QTimer::singleShot(0, this, [this]() { RelayoutInParent(); });

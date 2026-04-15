@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
 
-    CefInitializer::Init(&app, argc, argv);
+    qianjizn::qj_user::InitCef(&app);
 
     QTranslator appTr;
     const QString qmDir = QCoreApplication::applicationDirPath() + QStringLiteral("/translations");

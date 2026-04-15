@@ -33,11 +33,11 @@ private slots:
 
 private:
     void AbortAvatarRequest();
-    void ApplyLoggedOutAppearance();
+    void ApplyDefaultAvatar();
     void ApplyLoggedInAppearance(const qianjizn::qj_user::UserSession* session);
     QPixmap MakeInitialAvatarWithRing(const QString& nickName, const QString& userName) const;
     static QString PickInitialChar(const QString& nickName, const QString& userName);
-    QPixmap MakeCircularAvatarWithRing(const QPixmap& source) const;
+    QPixmap MakeCircularAvatar(const QPixmap& source) const;
     QUrl ResolveAvatarUrl(const QString& raw) const;
     static QPixmap LoadAvatarRaster(const char* resourcePath, int side);
 

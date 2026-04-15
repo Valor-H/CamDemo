@@ -54,7 +54,7 @@ void UserAuthService::CancelAllPendingRequests()
 
 void UserAuthService::ShowAccountAuthDialog(QWidget* parent)
 {
-    const QUrl loginUrl = DesktopWeb::buildDesktopLoginUrl(_cfg.frontendBaseUrl);
+    const QUrl loginUrl = buildDesktopLoginUrl(_cfg.frontendBaseUrl);
     AccountAuthDialog dlg(parent, loginUrl);
     connect(&dlg, &AccountAuthDialog::AuthSucceeded, this, &UserAuthService::OnLoginSucceeded);
     dlg.exec();

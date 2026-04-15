@@ -35,8 +35,6 @@ private:
     void UpdateUiFromUrl(const QUrl& url);
 
     QCefView* m_view { nullptr };
-    QWidget* m_loadingCover { nullptr };
-    bool m_mainFrameShown { false };
     QUrl m_currentUrl;
     QUrl m_authPageUrl;
 };

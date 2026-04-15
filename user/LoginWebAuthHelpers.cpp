@@ -83,7 +83,6 @@ bool IsTrustedInvokeSource(const QUrl& currentUrl, const QUrl& loginPageUrl)
     }
 
     const QUrlQuery query(currentUrl);
-    return query.queryItemValue(DesktopWeb::desktopClientQueryKey())
-        == DesktopWeb::desktopClientQueryValue();
+    return query.queryItemValue(desktopClientQueryKey()) == desktopClientQueryValue();
 }
 }

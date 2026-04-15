@@ -4,6 +4,6 @@
 
 class QApplication;
 
-namespace CefInitializer {
-QJ_USER_EXPORT void Init(QApplication* app, int argc, char* argv[]);
-}
+QJ_NAMESPACE_FIT_QJ_USER_BEGIN
+QJ_USER_EXPORT void InitCef(QApplication* app);
+QJ_NAMESPACE_FIT_QJ_USER_END
