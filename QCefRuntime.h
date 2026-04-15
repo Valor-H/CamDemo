@@ -4,7 +4,6 @@
 
 #include <QPointer>
 
-class QApplication;
 class QCefContext;
 
 class QCefRuntime
@@ -12,7 +11,7 @@ class QCefRuntime
 public:
     static QCefRuntime& Instance();
 
-    void Initialize(QApplication* app, int argc, char** argv);
+    void Initialize();
     bool IsInitialized() const;
     QCefContext* Context() const;
 

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "qj_user_global.h"
+#include "user_global.h"
 
 #include <QString>
 #include <QUrl>
 #include <QUrlQuery>
 
-QJ_NAMESPACE_FIT_QJ_USER_BEGIN
+QJ_NAMESPACE_FIT_USER_BEGIN
 inline QString desktopClientQueryKey()
 {
     return QStringLiteral("client");
@@ -50,4 +50,4 @@ inline QUrl buildTeamUrl(const QUrl& frontendBase, const QString& authToken)
     }
     return url;
 }
-QJ_NAMESPACE_FIT_QJ_USER_END
+QJ_NAMESPACE_FIT_USER_END

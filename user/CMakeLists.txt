@@ -1,8 +1,8 @@
-# qj_user 模块动态库：登录 UI（QCef）、HTTP（libhv）、会话与 token 持久化
+# user 模块动态库：登录 UI（QCef）、HTTP（libhv）、会话与 token 持久化
 # 注意：QCefView 在根 CMakeLists.txt 中定义
 
-add_library(qj_user SHARED
-    qj_user_global.h
+add_library(user SHARED
+    user_global.h
     UserSession.cpp
     UserSession.h
     AuthHttpClient.cpp
@@ -16,17 +16,17 @@ add_library(qj_user SHARED
     UserAuthService.h
     UserModuleConfig.h
     DesktopWeb.h
-    qj_user.h
+    user.h
 )
 
-target_include_directories(qj_user PUBLIC
+target_include_directories(user PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${QCEF_ROOT}/include"
 )
 
-target_compile_definitions(qj_user PRIVATE QJ_USER_LIBRARY)
+target_compile_definitions(user PRIVATE USER_LIBRARY)
 
-target_link_libraries(qj_user PUBLIC
+target_link_libraries(user PUBLIC
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
@@ -36,10 +36,10 @@ target_link_libraries(qj_user PUBLIC
 )
 
 if(MSVC)
-    target_compile_options(qj_user PRIVATE /utf-8)
+    target_compile_options(user PRIVATE /utf-8)
 endif()
 
-set_target_properties(qj_user PROPERTIES
+set_target_properties(user PROPERTIES
     DEBUG_POSTFIX "_d"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"

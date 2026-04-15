@@ -1,6 +1,6 @@
 #pragma once
 
-#include "qj_user_global.h"
+#include "user_global.h"
 
 #include <QUrl>
 #include <QWidget>
@@ -9,9 +9,9 @@ class SARibbonToolButton;
 class QNetworkAccessManager;
 class QNetworkReply;
 
-QJ_NAMESPACE_FIT_QJ_USER_BEGIN
+QJ_NAMESPACE_FIT_USER_BEGIN
 class UserSession;
-QJ_NAMESPACE_FIT_QJ_USER_END
+QJ_NAMESPACE_FIT_USER_END
 
 class TitleBarUserChip final : public QWidget
 {
@@ -21,7 +21,7 @@ public:
     static constexpr int kAvatarSide = 24;
 
     explicit TitleBarUserChip(QWidget* parent, const QUrl& apiBaseUrl);
-    void SyncFromSession(const qianjizn::qj_user::UserSession* session);
+    void SyncFromSession(const qianjizn::user::UserSession* session);
     void RelayoutInParent();
 
 signals:
@@ -34,7 +34,7 @@ private slots:
 private:
     void AbortAvatarRequest();
     void ApplyDefaultAvatar();
-    void ApplyLoggedInAppearance(const qianjizn::qj_user::UserSession* session);
+    void ApplyLoggedInAppearance(const qianjizn::user::UserSession* session);
     QPixmap MakeInitialAvatarWithRing(const QString& nickName, const QString& userName) const;
     static QString PickInitialChar(const QString& nickName, const QString& userName);
     QPixmap MakeCircularAvatar(const QPixmap& source) const;

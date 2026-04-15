@@ -1,18 +1,18 @@
 #pragma once
 
-#include "qj_user_global.h"
+#include "user_global.h"
 
 #include <QObject>
 #include <QString>
 #include <QVariantMap>
 
 #ifdef Q_MOC_RUN
-namespace qianjizn { namespace qj_user {
+namespace qianjizn { namespace user {
 #else
-QJ_NAMESPACE_FIT_QJ_USER_BEGIN
+QJ_NAMESPACE_FIT_USER_BEGIN
 #endif
 
-class QJ_USER_EXPORT UserSession final : public QObject
+class USER_EXPORT UserSession final : public QObject
 {
     Q_OBJECT
 
@@ -42,5 +42,5 @@ private:
 #ifdef Q_MOC_RUN
 } }
 #else
-QJ_NAMESPACE_FIT_QJ_USER_END
+QJ_NAMESPACE_FIT_USER_END
 #endif

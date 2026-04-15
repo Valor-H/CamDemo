@@ -36,7 +36,7 @@ private:
     QAction* _actionNew { nullptr };
     QAction* _actionOpen { nullptr };
     QAction* _actionSave { nullptr };
-    qianjizn::qj_user::UserAuthService _userAuth { qianjizn::qj_user::UserModuleConfig {} };
+    qianjizn::user::UserAuthService _userAuth { qianjizn::user::UserModuleConfig {} };
     TitleBarUserChip* _userChip { nullptr };
     QMenu* _loginMenu { nullptr };
     QAction* _personalCenterAction { nullptr };

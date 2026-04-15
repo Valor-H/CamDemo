@@ -3,22 +3,16 @@
 
 NApplication::NApplication(int& argc, char** argv)
     : QApplication(argc, argv)
-    , m_argc(argc)
-    , m_argv(argv)
 {}
 
 NApplication::~NApplication() = default;
 
 void NApplication::Initialize()
 {
-    if (QCefRuntime::Instance().IsInitialized()) {
-        return;
-    }
-
-    InitCefConfig();
+    InitCefRuntime();
 }
 
-void NApplication::InitCefConfig()
+void NApplication::InitCefRuntime()
 {
-    QCefRuntime::Instance().Initialize(this, m_argc, m_argv);
+    QCefRuntime::Instance().Initialize();
 }

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "qj_user_global.h"
+#include "user_global.h"
 
 #include <QString>
 #include <QUrl>
 
-QJ_NAMESPACE_FIT_QJ_USER_BEGIN
+QJ_NAMESPACE_FIT_USER_BEGIN
 
 struct UserModuleConfig
 {
@@ -16,4 +16,4 @@ struct UserModuleConfig
     QString authTokenKey { QStringLiteral("auth/token") };
 };
 
-QJ_NAMESPACE_FIT_QJ_USER_END
+QJ_NAMESPACE_FIT_USER_END

@@ -2,7 +2,7 @@
 
 #include "UserModuleConfig.h"
 #include "UserSession.h"
-#include "qj_user_global.h"
+#include "user_global.h"
 
 #include <QElapsedTimer>
 #include <QObject>
@@ -13,12 +13,12 @@ class AuthHttpClient;
 class QWidget;
 
 #ifdef Q_MOC_RUN
-namespace qianjizn { namespace qj_user {
+namespace qianjizn { namespace user {
 #else
-QJ_NAMESPACE_FIT_QJ_USER_BEGIN
+QJ_NAMESPACE_FIT_USER_BEGIN
 #endif
 
-class QJ_USER_EXPORT UserAuthService final : public QObject
+class USER_EXPORT UserAuthService final : public QObject
 {
     Q_OBJECT
 
@@ -65,5 +65,5 @@ private:
 #ifdef Q_MOC_RUN
 } }
 #else
-QJ_NAMESPACE_FIT_QJ_USER_END
+QJ_NAMESPACE_FIT_USER_END
 #endif

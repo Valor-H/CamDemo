@@ -16,7 +16,7 @@
 #include <QUrl>
 #include <QSslSocket>
 
-using qianjizn::qj_user::UserSession;
+using qianjizn::user::UserSession;
 
 namespace
 {

@@ -11,8 +11,5 @@ public:
     void Initialize();
 
 private:
-    void InitCefConfig();
-
-    int m_argc;
-    char** m_argv;
+    static void InitCefRuntime();
 };

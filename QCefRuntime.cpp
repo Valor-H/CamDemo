@@ -14,7 +14,7 @@ QCefRuntime& QCefRuntime::Instance()
     return instance;
 }
 
-void QCefRuntime::Initialize(QApplication* app, int argc, char** argv)
+void QCefRuntime::Initialize()
 {
     if (m_context) {
         return;
@@ -23,7 +23,8 @@ void QCefRuntime::Initialize(QApplication* app, int argc, char** argv)
     InitConfig();
     // QCefContext is a QObject; when constructed with app it should follow Qt object ownership.
     // Keep only a non-owning observer here to avoid double deletion at shutdown.
-    m_context = new QCefContext(app, argc, argv, &m_config);
+    int argc = 0;
+    m_context = new QCefContext(qobject_cast<QApplication*>(qApp), argc, nullptr, &m_config);
 }
 
 bool QCefRuntime::IsInitialized() const

@@ -20,7 +20,7 @@
 
 #include <QCefContext.h>
 
-using qianjizn::qj_user::UserSession;
+using qianjizn::user::UserSession;
 
 NMainWindow::NMainWindow(QWidget* parent)
     : SARibbonMainWindow(parent)
@@ -172,7 +172,7 @@ void NMainWindow::OnOpenPersonalProfile()
         OnShowAccountAuthDialog();
         return;
     }
-    QDesktopServices::openUrl(qianjizn::qj_user::buildPersonalProfileUrl(_userAuth.FrontendBaseUrl(), token));
+    QDesktopServices::openUrl(qianjizn::user::buildPersonalProfileUrl(_userAuth.FrontendBaseUrl(), token));
 }
 
 void NMainWindow::OnOpenTeam()
@@ -185,5 +185,5 @@ void NMainWindow::OnOpenTeam()
         OnShowAccountAuthDialog();
         return;
     }
-    QDesktopServices::openUrl(qianjizn::qj_user::buildTeamUrl(_userAuth.FrontendBaseUrl(), token));
+    QDesktopServices::openUrl(qianjizn::user::buildTeamUrl(_userAuth.FrontendBaseUrl(), token));
 }

@@ -7,7 +7,7 @@ const QString kUserKey = QStringLiteral("user");
 const QString kLoggedInKey = QStringLiteral("loggedIn");
 }
 
-QJ_NAMESPACE_FIT_QJ_USER_BEGIN
+QJ_NAMESPACE_FIT_USER_BEGIN
 
 UserSession::UserSession(QObject* parent)
     : QObject(parent)
@@ -68,4 +68,4 @@ void UserSession::Logout()
     emit UserProfileChanged();
 }
 
-QJ_NAMESPACE_FIT_QJ_USER_END
+QJ_NAMESPACE_FIT_USER_END

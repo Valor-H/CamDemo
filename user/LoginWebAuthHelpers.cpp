@@ -4,7 +4,7 @@
 
 #include <QUrlQuery>
 
-QJ_USING_NAMESPACE_FIT_QJ_USER
+QJ_USING_NAMESPACE_FIT_USER
 
 namespace LoginWebAuth
 {

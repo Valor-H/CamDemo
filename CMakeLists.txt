@@ -16,11 +16,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_PREFIX_PATH "D:/Tools/QT5/5.15.2/msvc2019_64")
 find_package(Qt5 COMPONENTS Core Gui Widgets Network LinguistTools REQUIRED)
 
-# ========== 2. QCefView（由 qj_user 模块内部使用）==========
+# ========== 2. QCefView（由 user 模块内部使用）==========
 # 布局：../3rdparty/QCefView/Debug/bin/QCefView.dll、Debug/lib/QCefView.lib（与 Release 对称）
 set(QCEF_ROOT "${CMAKE_SOURCE_DIR}/../3rdparty/QCefView")
 
-# QCefView 导入库（qj_user 模块和主程序都需要链接）
+# QCefView 导入库（user 模块和主程序都需要链接）
 add_library(QCefView SHARED IMPORTED GLOBAL)
 set_target_properties(QCefView PROPERTIES
     IMPORTED_CONFIGURATIONS "Debug;Release"
@@ -46,8 +46,8 @@ set_target_properties(libhv PROPERTIES
     INTERFACE_LINK_LIBRARIES "secur32;crypt32;winmm;iphlpapi;ws2_32"
 )
 
-# ========== 5. qj_user 模块 ==========
-add_subdirectory(qj_user)
+# ========== 5. user 模块 ==========
+add_subdirectory(user)
 
 # ========== 6. 主程序 ==========
 add_executable(CamDemo WIN32
@@ -75,7 +75,7 @@ add_dependencies(CamDemo CamDemoTranslations)
 # ========== 8. 链接 ==========
 # 注意：QCefView 必须同时链接，静态库依赖不会自动传递
 target_link_libraries(CamDemo PRIVATE
-    qj_user
+    user
     QCefView
     SARibbonBar::SARibbonBar
     Qt5::Core
