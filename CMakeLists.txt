@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 3.19)
+
+if(CMAKE_GENERATOR MATCHES "Visual Studio")
+    set(CMAKE_GENERATOR_TOOLSET "v142" CACHE STRING "Platform Toolset" FORCE)
+endif()
+
 project(CamDemo VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

@@ -17,8 +17,6 @@ add_library(qj_user SHARED
     UserModuleConfig.h
     DesktopWeb.h
     qj_user.h
-    CefInitializer.cpp
-    CefInitializer.h
 )
 
 target_include_directories(qj_user PUBLIC

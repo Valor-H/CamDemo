@@ -42,4 +42,5 @@ private:
     QAction* _personalCenterAction { nullptr };
     QAction* _teamAction { nullptr };
     QAction* _logoutAction { nullptr };
+    int _cefAuthRetryCount { 0 };
 };

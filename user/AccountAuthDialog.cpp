@@ -10,6 +10,7 @@
 #include <QWidget>
 #include <QPalette>
 
+#include <QCefSetting.h>
 #include <QCefView.h>
 
 AccountAuthDialog::AccountAuthDialog(QWidget* parent, const QUrl& authPageUrl)
@@ -33,7 +34,9 @@ AccountAuthDialog::AccountAuthDialog(QWidget* parent, const QUrl& authPageUrl)
     const QString startUrl = m_authPageUrl.toString();
     m_currentUrl = m_authPageUrl;
 
-    m_view = new QCefView(this);
+    QCefSetting setting;
+    setting.setBackgroundColor(QColor(Qt::white));
+    m_view = new QCefView(startUrl, &setting, this);
     m_view->setAutoFillBackground(true);
     m_view->setPalette(palette());
 
@@ -57,7 +60,6 @@ AccountAuthDialog::AccountAuthDialog(QWidget* parent, const QUrl& authPageUrl)
             [this](const QCefBrowserId&, const QCefFrameId&, const QString& method, const QVariantList& arguments) {
                 OnInvokeMethod(method, arguments);
             });
-    m_view->navigateToUrl(startUrl);
 }
 
 AccountAuthDialog::~AccountAuthDialog()

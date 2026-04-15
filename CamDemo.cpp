@@ -20,6 +20,8 @@
 #include <QEvent>
 #include <QSettings>
 
+#include <QCefContext.h>
+
 using qianjizn::qj_user::UserSession;
 
 CamDemo::CamDemo(QWidget* parent)
@@ -126,6 +128,20 @@ void CamDemo::RefreshUserChipFromSession()
 
 void CamDemo::OnShowAccountAuthDialog()
 {
+    constexpr int kMaxRetries = 40;
+    constexpr int kRetryMs = 50;
+
+    if (!QCefContext::instance()) {
+        if (_cefAuthRetryCount >= kMaxRetries) {
+            _cefAuthRetryCount = 0;
+            QMessageBox::warning(this, tr("提示"), tr("浏览器内核未就绪，请稍后重试。"));
+            return;
+        }
+        ++_cefAuthRetryCount;
+        QTimer::singleShot(kRetryMs, this, &CamDemo::OnShowAccountAuthDialog);
+        return;
+    }
+    _cefAuthRetryCount = 0;
     _userAuth.ShowAccountAuthDialog(this);
 }
 
