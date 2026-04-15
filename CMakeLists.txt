@@ -52,6 +52,12 @@ add_subdirectory(user)
 # ========== 6. 主程序 ==========
 add_executable(CamDemo WIN32
     main.cpp
+    NApplication.cpp
+    NApplication.h
+    NMainWindow.cpp
+    NMainWindow.h
+    QCefRuntime.cpp
+    QCefRuntime.h
     CamDemo.cpp
     CamDemo.h
     TitleBarUserChip.cpp

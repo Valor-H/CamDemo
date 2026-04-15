@@ -1,0 +1,56 @@
+#include "QCefRuntime.h"
+
+#include <QApplication>
+#include <QCoreApplication>
+#include <QDir>
+#include <QStandardPaths>
+#include <QColor>
+
+#include <QCefContext.h>
+
+QCefRuntime& QCefRuntime::Instance()
+{
+    static QCefRuntime instance;
+    return instance;
+}
+
+void QCefRuntime::Initialize(QApplication* app, int argc, char** argv)
+{
+    if (m_context) {
+        return;
+    }
+
+    InitConfig();
+    // QCefContext is a QObject; when constructed with app it should follow Qt object ownership.
+    // Keep only a non-owning observer here to avoid double deletion at shutdown.
+    m_context = new QCefContext(app, argc, argv, &m_config);
+}
+
+bool QCefRuntime::IsInitialized() const
+{
+    return !m_context.isNull();
+}
+
+QCefContext* QCefRuntime::Context() const
+{
+    return m_context.data();
+}
+
+void QCefRuntime::InitConfig()
+{
+    m_config.setLogLevel(QCefConfig::LOGSEVERITY_DEFAULT);
+    m_config.setBridgeObjectName(QStringLiteral("CallBridge"));
+    m_config.setBuiltinSchemeName(QStringLiteral("CefView"));
+    m_config.setRemoteDebuggingPort(0);
+    m_config.setWindowlessRenderingEnabled(true);
+    m_config.setStandaloneMessageLoopEnabled(true);
+    m_config.setSandboxDisabled(true);
+    m_config.setBackgroundColor(QColor(Qt::white));
+
+    const QString appDir = QCoreApplication::applicationDirPath();
+    const QString cefBundle = QDir(appDir).filePath(QStringLiteral("CefView"));
+    m_config.setResourceDirectoryPath(QDir(cefBundle).filePath(QStringLiteral("Resources")));
+    m_config.setLocalesDirectoryPath(QDir(cefBundle).filePath(QStringLiteral("locales")));
+    m_config.setCachePath(
+        QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + QStringLiteral("/CamDemo/cef"));
+}

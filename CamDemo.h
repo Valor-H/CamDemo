@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SARibbonMainWindow.h"
+#include "NMainWindow.h"
 #include "ui_CamDemo.h"
 #include "UserAuthService.h"
 
@@ -8,7 +8,7 @@ class TitleBarUserChip;
 class QAction;
 class QMenu;
 
-class CamDemo : public SARibbonMainWindow
+class CamDemo : public NMainWindow
 {
     Q_OBJECT
 

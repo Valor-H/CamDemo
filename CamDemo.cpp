@@ -25,7 +25,7 @@
 using qianjizn::qj_user::UserSession;
 
 CamDemo::CamDemo(QWidget* parent)
-    : SARibbonMainWindow(parent)
+    : NMainWindow(parent)
 {
     ui.setupUi(this);
     setWindowTitle(tr("CamDemo"));
@@ -49,7 +49,7 @@ bool CamDemo::event(QEvent* e)
     if (e && e->type() == QEvent::WindowActivate) {
         _userAuth.OnWindowActivateEvent();
     }
-    return SARibbonMainWindow::event(e);
+    return NMainWindow::event(e);
 }
 
 void CamDemo::InitRibbonBar()
