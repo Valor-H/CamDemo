@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 # ========== 1. 查找 Qt ==========
 set(CMAKE_PREFIX_PATH "D:/Tools/QT5/5.15.2/msvc2019_64")
-find_package(Qt5 COMPONENTS Core Gui Widgets Network LinguistTools REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets Network Concurrent LinguistTools REQUIRED)
 
 # ========== 2. QCefView（由 user 模块内部使用）==========
 # 布局：../3rdparty/QCefView/Debug/bin/QCefView.dll、Debug/lib/QCefView.lib（与 Release 对称）

@@ -22,7 +22,17 @@ public:
         QVariantMap data;
     };
 
+    struct DownloadResponse
+    {
+        bool    networkOk { false };
+        int     httpStatus { 0 };
+        bool    writeOk { false };
+        QString errorMessage;
+        QString targetFilePath;
+    };
+
     using Callback = std::function<void(const Response&)>;
+    using DownloadCallback = std::function<void(const DownloadResponse&)>;
 
     explicit AuthHttpClient(const QString& baseUrl, QObject* parent = nullptr);
     ~AuthHttpClient() override;
@@ -31,6 +41,13 @@ public:
               const QString& bearerToken,
               int            timeoutSec,
               Callback       callback);
+
+    void PostJsonToFile(const QString& path,
+                       const QString& bearerToken,
+                       const QByteArray& jsonBody,
+                       const QString& targetFilePath,
+                       int timeoutSec,
+                       DownloadCallback callback);
 
     void CancelAll();
 

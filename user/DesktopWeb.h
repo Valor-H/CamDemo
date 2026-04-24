@@ -50,4 +50,16 @@ inline QUrl buildTeamUrl(const QUrl& frontendBase, const QString& authToken)
     }
     return url;
 }
+
+inline QUrl buildFileManagerUrl(const QUrl& frontendBase, const QString& authToken)
+{
+    QUrl url = frontendBase.resolved(QUrl(QStringLiteral("local-files")));
+    QUrlQuery q;
+    q.addQueryItem(desktopClientQueryKey(), desktopClientQueryValue());
+    if (!authToken.isEmpty()) {
+        q.addQueryItem(QStringLiteral("token"), authToken);
+    }
+    url.setQuery(q);
+    return url;
+}
 QJ_NAMESPACE_FIT_USER_END

@@ -3,6 +3,8 @@
 
 add_library(user SHARED
     user_global.h
+    MockCamOptions.cpp
+    MockCamOptions.h
     UserSession.cpp
     UserSession.h
     AuthHttpClient.cpp
@@ -10,8 +12,13 @@ add_library(user SHARED
     LoginWebAuthHelpers.cpp
     LoginWebAuthHelpers.h
     DesktopAuthBridge.h
+    LocalFilesBridge.h
+    LocalFilesSnapshot.cpp
+    LocalFilesSnapshot.h
     AccountAuthDialog.cpp
     AccountAuthDialog.h
+    FileManagerDialog.cpp
+    FileManagerDialog.h
     UserAuthService.cpp
     UserAuthService.h
     UserModuleConfig.h
@@ -31,6 +38,7 @@ target_link_libraries(user PUBLIC
     Qt5::Gui
     Qt5::Widgets
     Qt5::Network
+    Qt5::Concurrent
     QCefView
     libhv
 )

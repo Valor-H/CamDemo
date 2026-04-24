@@ -5,6 +5,7 @@
 #include "DesktopWeb.h"
 
 #include <QSettings>
+#include <QMessageBox>
 #include <QWidget>
 
 QJ_USING_NAMESPACE_FIT_USER
@@ -57,7 +58,10 @@ void UserAuthService::ShowAccountAuthDialog(QWidget* parent)
     const QUrl loginUrl = buildDesktopLoginUrl(_cfg.frontendBaseUrl);
     AccountAuthDialog dlg(parent, loginUrl);
     connect(&dlg, &AccountAuthDialog::AuthSucceeded, this, &UserAuthService::OnLoginSucceeded);
-    dlg.exec();
+    const int r = dlg.exec();
+    if (r == QDialog::Accepted && _userSession.IsAuthenticated()) {
+        QMessageBox::information(parent, QObject::tr("提示"), QObject::tr("登录成功"));
+    }
 }
 
 void UserAuthService::Logout()

@@ -5,6 +5,7 @@
 
 #include <QtCore/qglobal.h>
 
+
 #ifdef user_EXPORTS
 #define USER_EXPORT Q_DECL_EXPORT
 #else

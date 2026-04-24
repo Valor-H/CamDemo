@@ -5,6 +5,7 @@
 #include "SARibbonQuickAccessBar.h"
 #include "SARibbonSystemButtonBar.h"
 #include "TitleBarUserChip.h"
+#include "FileManagerDialog.h"
 
 #include <QAbstractButton>
 #include <QAction>
@@ -34,6 +35,16 @@ NMainWindow::NMainWindow(QWidget* parent)
 }
 
 NMainWindow::~NMainWindow() = default;
+
+bool NMainWindow::OpenFile(const QString& file_name, const QString& backup_file, bool silent)
+{
+    Q_UNUSED(file_name);
+    Q_UNUSED(backup_file);
+    Q_UNUSED(silent);
+
+    // TODO: route cached/local QJP open requests into the desktop document pipeline.
+    return true;
+}
 
 bool NMainWindow::event(QEvent* e)
 {
@@ -97,10 +108,12 @@ void NMainWindow::InitUserChip()
 
     _loginMenu = new QMenu(this);
     _personalCenterAction = _loginMenu->addAction(tr("Personal center"));
+    _fileManagerAction = _loginMenu->addAction(tr("文件管理"));
     _teamAction = _loginMenu->addAction(tr("管理团队"));
     _logoutAction = _loginMenu->addAction(tr("Log out"));
     connect(_logoutAction, &QAction::triggered, this, &NMainWindow::OnLogout);
     connect(_personalCenterAction, &QAction::triggered, this, &NMainWindow::OnOpenPersonalProfile, Qt::UniqueConnection);
+    connect(_fileManagerAction, &QAction::triggered, this, &NMainWindow::OnOpenFileManager, Qt::UniqueConnection);
     connect(_teamAction, &QAction::triggered, this, &NMainWindow::OnOpenTeam, Qt::UniqueConnection);
 
     connect(_userChip, &TitleBarUserChip::loginRequested, this, &NMainWindow::OnShowAccountAuthDialog);
@@ -173,6 +186,24 @@ void NMainWindow::OnOpenPersonalProfile()
         return;
     }
     QDesktopServices::openUrl(qianjizn::user::buildPersonalProfileUrl(_userAuth.FrontendBaseUrl(), token));
+}
+
+void NMainWindow::OnOpenFileManager()
+{
+    QString token;
+    QSettings settings(_userAuth.Config().settingsOrg, _userAuth.Config().settingsApp);
+    token = settings.value(_userAuth.Config().authTokenKey).toString().trimmed();
+
+    if (token.isEmpty()) {
+        OnShowAccountAuthDialog();
+        return;
+    }
+
+    FileManagerDialog dlg(this, &_userAuth, qianjizn::user::buildFileManagerUrl(_userAuth.FrontendBaseUrl(), token));
+    connect(&dlg, &FileManagerDialog::OpenFileRequested, this, [this](const QString& filePath) {
+        OpenFile(filePath, QString(), false);
+    });
+    dlg.exec();
 }
 
 void NMainWindow::OnOpenTeam()
