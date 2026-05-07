@@ -33,6 +33,8 @@ constexpr int kDesktopQueryErrorInternal = 500;
 const QString kMethodRequestLocalFiles = QStringLiteral("Desktop.RequestLocalFiles");
 const QString kMethodRequestLogin = QStringLiteral("Desktop.RequestLogin");
 const QString kMethodRequestOpenRecentFile = QStringLiteral("Desktop.RequestOpenRecentFile");
+const QString kMethodRequestOpen = QStringLiteral("Desktop.RequestOpen");
+const QString kMethodRequestNewProject = QStringLiteral("Desktop.RequestNewProject");
 
 #ifndef CAMDEMO_RECENT_FILE_CACHE_DIR
 #define CAMDEMO_RECENT_FILE_CACHE_DIR "D:/cachePath/"
@@ -143,7 +145,7 @@ void FileManagerView::ApplyEmbeddedScale()
 
 void FileManagerView::SyncAuthStateToWeb()
 {
-    if (!m_authService || !m_authService->Session() || !m_authService->Session()->IsAuthenticated()) {
+    if (!m_authService || !m_authService->Session()) {
         return;
     }
     PushCurrentAuthStateToWeb();
@@ -157,13 +159,12 @@ void FileManagerView::PushCurrentAuthStateToWeb()
 
     const QString token = m_authService->Session()->AuthToken().trimmed();
     const QVariantMap currentUser = m_authService->Session()->CurrentUser();
-    if (token.isEmpty() || currentUser.isEmpty()) {
-        return;
-    }
+    const bool loggedIn = m_authService->Session()->IsAuthenticated() && !token.isEmpty() && !currentUser.isEmpty();
 
     const QJsonObject payload {
-        { QStringLiteral("token"), token },
-        { QStringLiteral("user"), QJsonObject::fromVariantMap(currentUser) },
+        { QStringLiteral("loggedIn"), loggedIn },
+        { QStringLiteral("token"), loggedIn ? token : QString() },
+        { QStringLiteral("user"), loggedIn ? QJsonObject::fromVariantMap(currentUser) : QJsonObject {} },
     };
     const QString json = QString::fromUtf8(QJsonDocument(payload).toJson(QJsonDocument::Compact));
 
@@ -209,6 +210,22 @@ void FileManagerView::OnCefQueryRequest(const QCefQuery& query)
 
     if (method == kMethodRequestOpenRecentFile) {
         HandleOpenRecentFileRequest(payload, &query);
+        return;
+    }
+
+    if (method == kMethodRequestOpen) {
+        emit OpenRequested();
+        QCefQuery successQuery = query;
+        successQuery.reply(true, QStringLiteral("{}"));
+        m_view->responseQCefQuery(successQuery);
+        return;
+    }
+
+    if (method == kMethodRequestNewProject) {
+        emit NewProjectRequested();
+        QCefQuery successQuery = query;
+        successQuery.reply(true, QStringLiteral("{}"));
+        m_view->responseQCefQuery(successQuery);
         return;
     }
 

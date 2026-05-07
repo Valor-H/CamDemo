@@ -40,6 +40,8 @@ NMainWindow::NMainWindow(QWidget* parent)
     connect(_userAuth.Session(), &UserSession::AuthStateChanged, this, &NMainWindow::RefreshUserChipFromSession);
     connect(_userAuth.Session(), &UserSession::UserProfileChanged, this, &NMainWindow::RefreshUserChipFromSession);
     connect(_actionDocument, &QAction::triggered, this, &NMainWindow::OnShowDocumentOverlay);
+    connect(_actionOpen, &QAction::triggered, this, &NMainWindow::OnOpen);
+    connect(_actionNew, &QAction::triggered, this, &NMainWindow::OnNewProject);
 
     _desktopFrontendServer = new DesktopFrontendServer(&_userAuth, this);
 }
@@ -142,7 +144,6 @@ void NMainWindow::InitRibbonBar()
         quickAccessBar->addAction(_actionDocument);
         quickAccessBar->addAction(_actionNew);
         quickAccessBar->addAction(_actionOpen);
-        quickAccessBar->addAction(_actionSave);
     }
 
     const auto makeAction = [this](const QString& text, QStyle::StandardPixmap iconType) {
@@ -168,9 +169,8 @@ void NMainWindow::InitRibbonBar()
     fillPanel(categoryFile->addPanel(QStringLiteral("Project")),
               {
                   _actionDocument,
-                  makeAction(QStringLiteral("New"), QStyle::SP_FileIcon),
-                  makeAction(QStringLiteral("Open"), QStyle::SP_DialogOpenButton),
-                  makeAction(QStringLiteral("Save"), QStyle::SP_DialogSaveButton),
+                  _actionNew,
+                  _actionOpen,
               });
 
     SARibbonCategory* categoryHome = ribbonBarWidget->addCategoryPage(QStringLiteral("Home"));
@@ -310,7 +310,7 @@ void NMainWindow::OnLogout()
 
 void NMainWindow::OnOpenPersonalProfile()
 {
-    _userAuth.BuildExternalWebSsoUrl(QStringLiteral("/profile-personal"),
+    _userAuth.BuildExternalWebSsoUrl(QStringLiteral("/personal-profile"),
         [this](const QUrl& url, const QString& errorMessage) {
             if (!errorMessage.isEmpty() || !url.isValid()) {
                 QMessageBox::warning(
@@ -359,6 +359,8 @@ void NMainWindow::ShowFileManagerWorkspace(const QUrl& pageUrl)
         connect(_fileManagerView, &FileManagerView::OpenFileRequested, this, [this](const QString& filePath) {
             OpenFile(filePath, QString(), false);
         });
+        connect(_fileManagerView, &FileManagerView::OpenRequested, this, &NMainWindow::OnOpen);
+        connect(_fileManagerView, &FileManagerView::NewProjectRequested, this, &NMainWindow::NewProject);
         _fileManagerView->hide();
     } else {
         _fileManagerView->NavigateTo(pageUrl);
@@ -393,4 +395,24 @@ void NMainWindow::OnOpenTeam()
             }
             QDesktopServices::openUrl(url);
         });
+}
+
+void NMainWindow::OnOpen()
+{
+    OpenFile(QString(), QString(), false);
+    if (statusBar()) {
+        statusBar()->showMessage(tr("Open command requested."), 2000);
+    }
+}
+
+void NMainWindow::OnNewProject()
+{
+    NewProject();
+}
+
+void NMainWindow::NewProject()
+{
+    if (statusBar()) {
+        statusBar()->showMessage(tr("New project command requested."), 2000);
+    }
 }

@@ -29,6 +29,8 @@ public:
 
 signals:
     void OpenFileRequested(const QString& filePath);
+    void OpenRequested();
+    void NewProjectRequested();
 
 private:
     void ApplyEmbeddedScale();

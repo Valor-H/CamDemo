@@ -49,6 +49,9 @@ private:
     void OnOpenPersonalProfile();
     void OnOpenFileManager();
     void OnOpenTeam();
+    void OnOpen();
+    void NewProject();
+    void OnNewProject();
 
     QAction* _actionNew { nullptr };
     QAction* _actionOpen { nullptr };

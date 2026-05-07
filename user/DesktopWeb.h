@@ -22,7 +22,7 @@ inline QUrl buildDesktopLoginUrl(const QUrl& frontendBase)
 
 inline QUrl buildPersonalProfileUrl(const QUrl& frontendBase)
 {
-    return frontendBase.resolved(QUrl(QStringLiteral("profile-personal")));
+    return frontendBase.resolved(QUrl(QStringLiteral("personal-profile")));
 }
 
 inline QUrl buildTeamUrl(const QUrl& frontendBase)
@@ -37,7 +37,7 @@ inline QUrl buildExternalSsoLoginUrl(const QUrl& frontendBase, const QString& ti
     query.addQueryItem(QStringLiteral("ticket"), ticket.trimmed());
     QString normalizedRedirect = redirectPath.trimmed();
     if (normalizedRedirect.isEmpty()) {
-        normalizedRedirect = QStringLiteral("/profile-personal");
+        normalizedRedirect = QStringLiteral("/personal-profile");
     } else if (!normalizedRedirect.startsWith(QLatin1Char('/'))) {
         normalizedRedirect.prepend(QLatin1Char('/'));
     }
