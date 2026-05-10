@@ -20,16 +20,6 @@ inline QUrl buildDesktopLoginUrl(const QUrl& frontendBase)
     return url;
 }
 
-inline QUrl buildPersonalProfileUrl(const QUrl& frontendBase)
-{
-    return frontendBase.resolved(QUrl(QStringLiteral("personal-profile")));
-}
-
-inline QUrl buildTeamUrl(const QUrl& frontendBase)
-{
-    return frontendBase.resolved(QUrl(QStringLiteral("team")));
-}
-
 inline QUrl buildExternalSsoLoginUrl(const QUrl& frontendBase, const QString& ticket, const QString& redirectPath)
 {
     QUrl url = frontendBase.resolved(QUrl(QStringLiteral("sso-login")));
@@ -42,16 +32,6 @@ inline QUrl buildExternalSsoLoginUrl(const QUrl& frontendBase, const QString& ti
         normalizedRedirect.prepend(QLatin1Char('/'));
     }
     query.addQueryItem(QStringLiteral("redirect"), normalizedRedirect);
-    url.setQuery(query);
-    return url;
-}
-
-inline QUrl buildFileManagerUrl(const QUrl& frontendBase, const QString& /*authToken*/)
-{
-    QUrl url = frontendBase.resolved(QUrl(QStringLiteral("local-files")));
-    QUrlQuery query(url);
-    query.removeAllQueryItems(QStringLiteral("source"));
-    query.addQueryItem(QStringLiteral("source"), QStringLiteral("desktop"));
     url.setQuery(query);
     return url;
 }

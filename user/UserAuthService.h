@@ -35,7 +35,6 @@ public:
     const UserModuleConfig& Config() const { return _cfg; }
     QUrl ApiBaseUrl() const { return _cfg.apiBaseUrl; }
     QUrl FrontendBaseUrl() const { return _cfg.frontendBaseUrl; }
-    QUrl ExternalFrontendBaseUrl() const { return _cfg.externalFrontendBaseUrl; }
     void SetFrontendBaseUrl(const QUrl& url) { _cfg.frontendBaseUrl = url; }
 
     void CancelAllPendingRequests();

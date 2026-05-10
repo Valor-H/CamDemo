@@ -55,7 +55,6 @@ private:
 
     QAction* _actionNew { nullptr };
     QAction* _actionOpen { nullptr };
-    QAction* _actionSave { nullptr };
     QAction* _actionDocument { nullptr };
     qianjizn::user::UserAuthService _userAuth { qianjizn::user::UserModuleConfig {} };
     DesktopFrontendServer* _desktopFrontendServer { nullptr };

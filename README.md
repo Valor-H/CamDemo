@@ -1,189 +1,96 @@
-# 获取本文件所在目录（假设放在 lib/cmake/qcefview/）
-get_filename_component(QCEFVIEW_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
-# 计算根目录：向上退两级（lib/cmake/ → lib/ → 根/）
-get_filename_component(QCEFVIEW_DIR "${QCEFVIEW_CMAKE_DIR}/../../.." ABSOLUTE)
+# CamDemo
 
-# Debug 版本标识符（统一修改此处即可改变所有路径）
-set(QCEFVIEW_DEBUG_POSTFIX "d")
+QJCam 云端协同平台的桌面端（CamDemo），基于 **Qt 5.15 + QCefView + SARibbonBar + libhv** 的 C++/CMake 工程。通过内嵌 CEF 浏览器承载 cloud-cam-front 前端页面，并与 user-service 后端对接，实现桌面形态下的账号体系、文件管理与工作区入口。
 
-# 目录路径（使用变量拼接，自动扩展为 bind/libd）
-set(QCEFVIEW_INCLUDE_DIR "${QCEFVIEW_DIR}/include")
-set(QCEFVIEW_BIN_DEBUG   "${QCEFVIEW_DIR}/bin${QCEFVIEW_DEBUG_POSTFIX}")  # bind
-set(QCEFVIEW_BIN_RELEASE "${QCEFVIEW_DIR}/bin")                           # bin
-set(QCEFVIEW_LIB_DEBUG   "${QCEFVIEW_DIR}/lib${QCEFVIEW_DEBUG_POSTFIX}")  # libd
-set(QCEFVIEW_LIB_RELEASE "${QCEFVIEW_DIR}/lib")                           # lib
+## 功能概览
 
-# 创建导入目标（SHARED 表示动态库，IMPORTED 表示预编译）
-add_library(QCefView SHARED IMPORTED GLOBAL)
+- 主窗口：SARibbonBar 功能区 + 可切换的首页工作区 / 文件管理工作区
+- 账号体系：内嵌 CEF 页面完成登录、注册、找回密码；持久化 Token 与会话
+- 用户身份芯片（TitleBarUserChip）：标题栏显示当前用户、下拉进入个人中心 / 团队 / 退出
+- 文件管理：调用前端的文件页面，支持打开项目、新建项目等桌面侧入口
+- 本地桌面前端服务：libhv HTTP 服务，向内嵌 CEF 注入 bootstrap 数据（后端地址、Token、用户、离线态等）
+- 本地文件快照：记录最近打开的本地文件（LocalFilesSnapshot）
+- 国际化：随程序启动加载 `translations/CamDemo_zh_CN.qm`
 
-# 设置头文件搜索路径（INTERFACE 表示使用此目标时会自动添加）
-set_target_properties(QCefView PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${QCEFVIEW_INCLUDE_DIR}"
-)
+## 技术栈
 
-# Debug 配置：IMPLIB 指向 .lib 导入库，LOCATION 指向 .dll 运行时
-set_target_properties(QCefView PROPERTIES
-    IMPORTED_IMPLIB_DEBUG   "${QCEFVIEW_LIB_DEBUG}/QCefView${QCEFVIEW_DEBUG_POSTFIX}.lib"
-    IMPORTED_LOCATION_DEBUG "${QCEFVIEW_BIN_DEBUG}/QCefView${QCEFVIEW_DEBUG_POSTFIX}.dll"
-)
+- C++17、CMake ≥ 3.19、MSVC（v142 Toolset）
+- Qt 5.15.2（Core / Gui / Widgets / Network / Concurrent / LinguistTools）
+- QCefView（CEF 桌面浏览器控件）
+- SARibbonBar（Ribbon 风格主窗口）
+- libhv（HTTP 客户端 / 本地 HTTP 服务）
 
-# Release 配置（标准命名，无后缀）
-set_target_properties(QCefView PROPERTIES
-    IMPORTED_IMPLIB_RELEASE   "${QCEFVIEW_LIB_RELEASE}/QCefView.lib"
-    IMPORTED_LOCATION_RELEASE "${QCEFVIEW_BIN_RELEASE}/QCefView.dll"
-)
+## 目录结构
 
-# 默认回退（当 CMake 无法确定 Debug/Release 时使用 Debug 版本）
-set_target_properties(QCefView PROPERTIES
-    IMPORTED_IMPLIB   "${QCEFVIEW_LIB_DEBUG}/QCefView${QCEFVIEW_DEBUG_POSTFIX}.lib"
-    IMPORTED_LOCATION "${QCEFVIEW_BIN_DEBUG}/QCefView${QCEFVIEW_DEBUG_POSTFIX}.dll"
-)
+```
+cam-demo/
+  main.cpp                     # 程序入口，加载翻译、构建 CamDemo 主窗口
+  NApplication.*               # QApplication 派生类，全局初始化
+  NMainWindow.*                # Ribbon 主窗口，承载工作区与用户芯片
+  CamDemo.*                    # 主窗口外壳（ui/qrc）
+  MockMainWorkspace.h          # 首页占位工作区
+  DesktopFrontendServer.*      # 本地 libhv HTTP 服务，向前端注入 bootstrap
+  QCefRuntime.*                # QCefView 运行时初始化
+  TitleBarUserChip.*           # 标题栏用户身份组件
+  user/                        # 账号 / 登录 / 文件管理 UI 动态库
+    AccountAuthDialog.*        # 登录/注册/找回密码 CEF 对话框
+    AuthHttpClient.*           # 调用 user-service 的 HTTP 客户端
+    UserAuthService.*          # 认证服务门面
+    UserSession.*              # 会话与 Token 持久化
+    FileManagerView.*          # 文件管理 CEF 视图
+    LocalFilesSnapshot.*       # 本地文件快照
+    LoginWebAuthHelpers.*      # Web 登录桥接
+    MockCamOptions.*           # 可调参数（示例/调试用）
+    UserModuleConfig.h         # user 模块默认配置
+  resource/                    # 图标与头像资源
+  translations/                # Qt Linguist .ts 翻译
+```
 
-# 标记查找成功
-set(QCEFVIEW_FOUND TRUE)
+## 依赖前置
 
-# 输出提示（便于调试时确认加载的是哪个版本）
-message(STATUS "QCefView: ${QCEFVIEW_DIR}")
-message(STATUS "  Debug lib:   ${QCEFVIEW_LIB_DEBUG}")
-message(STATUS "  Release lib: ${QCEFVIEW_LIB_RELEASE}")
+构建前需准备以下三方依赖，默认路径见 [CMakeLists.txt](CMakeLists.txt)，可按需修改：
 
+| 依赖 | 默认路径 | 说明 |
+| --- | --- | --- |
+| Qt 5.15.2 | `D:/Tools/QT5/5.15.2/msvc2019_64` | `CMAKE_PREFIX_PATH` |
+| QCefView | `../3rdparty/QCefView`（Debug/Release 各含 `bin/` 与 `lib/`） | CEF 内嵌浏览器 |
+| SARibbonBar | `D:/Codes/SARibbon/bin_qt5.15.2_MSVC_x64` | Ribbon 控件 |
+| libhv | `D:/Codes/libhv/installed_debug` | HTTP 库 |
 
+构建时 `POST_BUILD` 会自动把 QCefView、libhv、SARibbon 的运行时 DLL 以及翻译文件复制到目标输出目录。
 
+## 构建与运行
 
-# 3rdparty_macro.cmake 内容
+```powershell
+# 从仓库根目录进入 cam-demo
+cmake -S . -B build -G "Visual Studio 16 2019" -A x64
+cmake --build build --config Debug
 
-function(QJ_3RDPARTY_ADD_LIBRARY _target _libname _incluir _libdir _linklibs _compileopts _type)
-    QJ_3RDPARTY_ADD_LIBRARY_BASE(
-        ${_target}
-        ${_libname}
-        _d
-        ${_incluir}
-        ${_libdir}
-        ${_linklibs}
-        ${_compileopts}
-        ${_type})
-endfunction()
+# 运行（产物位于 build/bin）
+.\build\bin\CamDemo.exe
+```
 
-fucntion(QJ_3RDPARTY_ADD_LIBRARY_BASE _target _libname _debug_Suffix _incluir _libdir _linklibs _compileopts _type)
-    if (TARGET ${_target})
-        return()
-    endif()
+> 首次运行会生成本地设置（`QianJiZN / CamDemo`），并尝试启动本地前端桥接服务。
 
-    add_library(${_target} ${_type} IMPORTED)
+## 运行时配置
 
-    if (WIN32)
-        set(_qj_3rd_suffix .lib)
-    elseif (${_type} STREQAL "STATIC")
-        set(_qj_3rd_suffix .a)
-    else()
-        set(_qj_3rd_suffix .so)
-    endif()
+默认运行时参数定义在 [user/UserModuleConfig.h](user/UserModuleConfig.h)：
 
-    if (MSVC)
-        set(_qj_3rd_prefix )
-    else()
-        set(_qj_3rd_prefix lib)
-    endif()
+| 项 | 默认值 | 说明 |
+| --- | --- | --- |
+| `apiBaseUrl` | `http://localhost:8080/` | user-service 后端地址 |
+| `websocketUrl` | `ws://localhost:8091/ws` | WebSocket 推送地址 |
+| `helpDocUrl` | `http://localhost:4173` | 帮助文档站点 |
+| `frontendBaseUrl` | `http://localhost:31870/` | 内嵌 CEF 加载的前端地址（由本地桥接服务提供） |
+| `externalFrontendBaseUrl` | `http://localhost:5173/` | 外链浏览器打开的前端地址 |
+| `settingsOrg` / `settingsApp` | `QianJiZN` / `CamDemo` | QSettings 组织与应用名 |
+| `authTokenKey` | `auth/token` | Token 在本地设置中的键 |
 
-    set(_qj_3rd_debug_suffix ${_debugSuffix})
+## 关联项目
 
-    set(_qj_3rd_lib_name ${_qj_3rd_prefix}${_libname}${_qj_3rd_suffix})
-    set(_qj_3rd_lib_name_debug ${_qj_3rd_prefix}${_libname}${_qj_3rd_debug_suffix}${_qj_3rd_suffix})
+- [cloud-cam-front](../cloud-cam-front) — 内嵌 CEF 加载的 Vue 3 前端
+- [user-service](../user-service) — 对应的 Spring Boot 后端服务
 
-    set(_qj_3rd_library_path ${_libdir}/${_qj_3rd_lib_name})
-    set(_qj_3rd_libray_path_debug ${_libdir}/${_qj_3rd_lib_name_debug})
+## 备注
 
-    if (NOT EXISTS ${_qj_3rd_library_path})
-        message(FATAL_ERROR "Not found library: ${_qj_3rd_library_path}")
-    endif()
-
-    if (NOT EXISTS ${_qj_3rd_libray_path_debug})
-        message(FATAL_ERROR "Not found library: ${_qj_3rd_libray_path_debug}")
-    endif()
-
-    if (EXISTS ${_qj_3rd_library_path_debug})
-        set_target_properties(${_target} PROPERTIES
-            IMPORTED_CONFIGURATIONS "Release;Debug"
-            IMPORTED_LOCATION_RELEASE ${_qj_3rd_library_path}
-            IMPORTED_LOCATION_DEBUG   ${_qj_3rd_libray_path_debug}
-            IMPORTED_IMPLIB_RELEASE ${_qj_3rd_library_path}
-            IMPORTED_IMPLIB_DEBUG   ${_qj_3rd_libray_path_debug}
-            INTERFACE_INCLUDE_DIRECTORIES ${_incluir}
-        )
-    else()
-        set_target_properties(${_target} PROPERTIES
-            IMPORTED_LOCATION ${_qj_3rd_library_path}
-            IMPORTED_IMPLIB ${_qj_3rd_library_path}
-            INTERFACE_INCLUDE_DIRECTORIES ${_incluir}
-        )
-    endif()
-
-    if (NOT ${_linklibs} STREQUAL "")
-        set_target_properties(${_target} PROPERTIES
-            INTERFACE_LINK_LIBRARIES ${_linklibs}
-        )
-    endif()
-
-    if (NOT ${_compileopts} STREQUAL "")
-        set_target_properties(${_target} PROPERTIES
-            INTERFACE_COMPILE_OPTIONS ${_compileopts}
-        )
-    endif()
-endfunction()
-
-
-# libhv 具体使用
-
-例如 lib_hv 库导入，文件结构为 
-3rdparty/libhv/bin/(hv.dll + hv_d.dll)
-3rdparty/libhv/lib/(hv.lib + hv_d.lib)
-3rdparty/libhv/include/hv
-
-则使用如下：
-
-get_filename_component(libhv_DIR "${CMAKE_CURRENT_LIST_DIR}/../libhv" ABSOLUTE)
-
-set(libhv_FOUND TRUE)
-set(libhv_INCLUDE_DIRS "${libhv_DIR}/include")
-set(libhv_LIBRARY_DIR "${libhv_DIR}/lib")
-include(${CMAKE_CURRENT_LIST_DIR}/3rdparty_macro.cmake)
-
-if(NOT TARGET libhv)
-    QJ_3RDPARTY_ADD_LIBRARY(
-        libhv
-        hv
-        ${libhv_INCLUDE_DIRS}
-        ${libhv_LIBRARY_DIR}
-        ""
-        ""
-        SHARED)
-endif()
-
-
-
-# QCefView 导入配置
-
-例如 QCefView 库的导入，文件结构为
-QCefView/Debug/bin/QCefView.dll
-QCefView/Debug/lib/QCefView.lib
-QCefView/Release/bin/QCefView.dll
-QCefView/Release/lib/QCefView.lib
-
-则使用如下：
-
-get_filename_component(QCEFVIEW_DIR "${CMAKE_CURRENT_LIST_DIR}/../QCefView" ABSOLUTE)
-
-set(QCEFVIEW_FOUND TRUE)
-
-if (NOT TARGET QCefView)
-    add_library(QCefView SHARED IMPORTED)
-    set_target_properties(QCefView PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${QCEFVIEW_DIR}/include"
-        IMPORTED_IMPLIB_DEBUG   "${QCEFVIEW_DIR}/Debug/lib/QCefView.lib"
-        IMPORTED_LOCATION_DEBUG "${QCEFVIEW_DIR}/Debug/bin/QCefView.dll"
-        IMPORTED_IMPLIB_RELEASE "${QCEFVIEW_DIR}/Release/lib/QCefView.lib"
-        IMPORTED_LOCATION_RELEASE "${QCEFVIEW_DIR}/Release/bin/QCefView.dll"
-        IMPORTED_IMPLIB "${QCEFVIEW_DIR}/Debug/lib/QCefView.lib"
-        IMPORTED_LOCATION "${QCEFVIEW_DIR}/Debug/bin/QCefView.dll"
-    )
-endif()
+- 如出现 CEF 加载空白，先确认 `QCefView` Debug/Release 版本与当前构建配置一致，并检查 `POST_BUILD` 是否已把 `bin/` 产物拷贝完整。

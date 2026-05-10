@@ -3,5 +3,4 @@
         <file>resource/avatar.png</file>
         <file>resource/logo.ico</file>
     </qresource>
-    <qresource prefix="/new/prefix2"/>
 </RCC>

@@ -113,11 +113,10 @@ QString DesktopFrontendServer::BuildBootstrapJson() const
     QJsonObject payload {
         { QStringLiteral("loggedIn"), snapshot.loggedIn },
         { QStringLiteral("offline"), snapshot.offline },
-        { QStringLiteral("backendUrl"), snapshot.backendUrl },
-        { QStringLiteral("websocketUrl"), snapshot.websocketUrl },
-        { QStringLiteral("helpDocUrl"), snapshot.helpDocUrl },
+        { QStringLiteral("BackendUrl"), snapshot.backendUrl },
         { QStringLiteral("WebsocketUrl"), snapshot.websocketUrl },
         { QStringLiteral("HelpDocUrl"), snapshot.helpDocUrl },
+        { QStringLiteral("MockServiceUrl"), snapshot.mockServiceUrl },
         { QStringLiteral("token"), snapshot.token },
     };
     if (!snapshot.user.isEmpty()) {
@@ -136,6 +135,7 @@ DesktopFrontendServer::BootstrapSnapshot DesktopFrontendServer::CaptureSnapshot(
     snapshot.backendUrl = m_authService->ApiBaseUrl().toString().trimmed();
     snapshot.websocketUrl = m_authService->Config().websocketUrl.toString().trimmed();
     snapshot.helpDocUrl = m_authService->Config().helpDocUrl.toString().trimmed();
+    snapshot.mockServiceUrl = m_authService->Config().mockServiceUrl.toString().trimmed();
     snapshot.token = m_authService->Session()->AuthToken().trimmed();
     snapshot.user = m_authService->Session()->CurrentUser();
     snapshot.loggedIn = m_authService->Session()->IsAuthenticated() && !snapshot.token.isEmpty();

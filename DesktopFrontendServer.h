@@ -31,6 +31,7 @@ private:
         QString backendUrl;
         QString websocketUrl;
         QString helpDocUrl;
+        QString mockServiceUrl;
         QString token;
         QVariantMap user;
     };

@@ -12,8 +12,6 @@ public:
     static QCefRuntime& Instance();
 
     void Initialize();
-    bool IsInitialized() const;
-    QCefContext* Context() const;
 
 private:
     QCefRuntime() = default;

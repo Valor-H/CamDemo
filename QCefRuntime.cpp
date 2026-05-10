@@ -27,16 +27,6 @@ void QCefRuntime::Initialize()
     m_context = new QCefContext(qobject_cast<QApplication*>(qApp), argc, nullptr, &m_config);
 }
 
-bool QCefRuntime::IsInitialized() const
-{
-    return !m_context.isNull();
-}
-
-QCefContext* QCefRuntime::Context() const
-{
-    return m_context.data();
-}
-
 void QCefRuntime::InitConfig()
 {
     m_config.setLogLevel(QCefConfig::LOGSEVERITY_DEFAULT);

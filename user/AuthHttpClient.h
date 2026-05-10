@@ -51,9 +51,6 @@ public:
 
     void CancelAll();
 
-    QString BaseUrl() const { return _baseUrl; }
-    void    SetBaseUrl(const QString& url) { _baseUrl = url; }
-
 private:
     QString                                _baseUrl;
     std::shared_ptr<std::atomic<quint64>>  _cancelEpoch;
