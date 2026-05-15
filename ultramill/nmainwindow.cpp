@@ -1,8 +1,8 @@
 #include "nmainwindow.h"
 
-#include <user/desktop_web_server.h>
-#include <user/desktop_web.h>
-#include <user/file_manager_view.h>
+#include <cloud-server/desktop_web_server.h>
+#include <cloud-server/desktop_web.h>
+#include <cloud-server/file_manager_view.h>
 #include <SARibbonBar/SARibbonBar.h>
 #include <SARibbonBar/SARibbonCategory.h>
 #include <SARibbonBar/SARibbonPanel.h>
@@ -10,7 +10,7 @@
 #include <SARibbonBar/SARibbonSystemButtonBar.h>
 #include <SARibbonBar/SARibbonTabBar.h>
 #include <SARibbonBar/SARibbonTitleIconWidget.h>
-#include <user/title_bar_user_chip.h>
+#include <cloud-server/title_bar_user_chip.h>
 
 #include <QAbstractButton>
 #include <QAction>
@@ -33,7 +33,7 @@
 #include <QCefContext.h>
 #include <QCefView.h>
 
-using qianjizn::user::UserSession;
+using qianjizn::cloudserver::UserSession;
 
 QJ_NAMESPACE_ULTRACAM_ULTRAMILL_BEGIN
 
@@ -54,7 +54,7 @@ NMainWindow::NMainWindow(QWidget* parent)
     connect(_actionOpen, &QAction::triggered, this, &NMainWindow::OnOpen);
     connect(_actionNew, &QAction::triggered, this, &NMainWindow::OnNewProject);
 
-    _desktopWebServer = new qianjizn::user::DesktopWebServer(&_userAuth, this);
+    _desktopWebServer = new qianjizn::cloudserver::DesktopWebServer(&_userAuth, this);
     InitializeMainWindowShell();
 }
 
@@ -108,7 +108,7 @@ void NMainWindow::InitializeMainWindowShell()
     RefreshUserChipFromSession();
     _userAuth.InitFromStoredToken();
 
-    const QUrl pageUrl = qianjizn::user::buildRecentFilesUrl(_userAuth.FrontendBaseUrl());
+    const QUrl pageUrl = qianjizn::cloudserver::buildRecentFilesUrl(_userAuth.FrontendBaseUrl());
     ShowFileManagerWorkspace(pageUrl);
     ShowHomeWorkspace();
 }
@@ -261,7 +261,7 @@ void NMainWindow::InitUserChip()
     spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     bar->addWidget(spacer);
 
-    _userChip = new qianjizn::user::TitleBarUserChip(bar, _userAuth.ApiBaseUrl());
+    _userChip = new qianjizn::cloudserver::TitleBarUserChip(bar, _userAuth.ApiBaseUrl());
     bar->addWidget(_userChip);
 
     QTimer::singleShot(0, this, [this]() { SyncUserChipIntoTitleBar(); });
@@ -275,9 +275,9 @@ void NMainWindow::InitUserChip()
     connect(_personalCenterAction, &QAction::triggered, this, &NMainWindow::OnOpenPersonalProfile, Qt::UniqueConnection);
     connect(_teamAction, &QAction::triggered, this, &NMainWindow::OnOpenTeam, Qt::UniqueConnection);
 
-    connect(_userChip, &qianjizn::user::TitleBarUserChip::loginRequested, this, &NMainWindow::OnShowAccountAuthDialog);
+    connect(_userChip, &qianjizn::cloudserver::TitleBarUserChip::loginRequested, this, &NMainWindow::OnShowAccountAuthDialog);
     connect(
-        _userChip, &qianjizn::user::TitleBarUserChip::accountMenuRequested, this, &NMainWindow::OnShowAccountMenu);
+        _userChip, &qianjizn::cloudserver::TitleBarUserChip::accountMenuRequested, this, &NMainWindow::OnShowAccountMenu);
 }
 
 void NMainWindow::SyncUserChipIntoTitleBar()
@@ -299,7 +299,7 @@ void NMainWindow::SyncUserChipIntoTitleBar()
         }
     }
 
-    const int minH = qianjizn::user::TitleBarUserChip::kAvatarButtonSide;
+    const int minH = qianjizn::cloudserver::TitleBarUserChip::kAvatarButtonSide;
     const int h = rowH > 0 ? qMax(rowH, minH) : minH;
     _userChip->setFixedHeight(h);
     _userChip->RelayoutInParent();
@@ -377,7 +377,7 @@ void NMainWindow::OnOpenFileManager()
         InitCentralWorkspace();
     }
 
-    const QUrl pageUrl = qianjizn::user::buildRecentFilesUrl(_userAuth.FrontendBaseUrl());
+    const QUrl pageUrl = qianjizn::cloudserver::buildRecentFilesUrl(_userAuth.FrontendBaseUrl());
     ShowFileManagerWorkspace(pageUrl);
 }
 

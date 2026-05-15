@@ -1,6 +1,6 @@
 #pragma once
 
-#include "user_global.h"
+#include "cloud_server_global.h"
 
 #include <QUrl>
 #include <QWidget>
@@ -9,10 +9,10 @@ class SARibbonToolButton;
 class QNetworkAccessManager;
 class QNetworkReply;
 
-QJ_NAMESPACE_FIT_USER_BEGIN
+QJ_NAMESPACE_FIT_CLOUD_SERVER_BEGIN
 class UserSession;
 
-class USER_EXPORT TitleBarUserChip final : public QWidget
+class CLOUD_SERVER_EXPORT TitleBarUserChip final : public QWidget
 {
     Q_OBJECT
 
@@ -51,6 +51,5 @@ private:
     QString _fallbackUserName;
 };
 
-QJ_NAMESPACE_FIT_USER_END
-
+QJ_NAMESPACE_FIT_CLOUD_SERVER_END
 

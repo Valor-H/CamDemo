@@ -82,7 +82,7 @@ double zoomFactorToLevel(double factor)
 }
 }
 
-FileManagerView::FileManagerView(QWidget* parent, qianjizn::user::UserAuthService* authService, const QUrl& pageUrl)
+FileManagerView::FileManagerView(QWidget* parent, qianjizn::cloudserver::UserAuthService* authService, const QUrl& pageUrl)
     : QWidget(parent)
     , m_pageUrl(pageUrl)
     , m_authService(authService)
@@ -142,7 +142,7 @@ FileManagerView::FileManagerView(QWidget* parent, qianjizn::user::UserAuthServic
         PushLocalFilesSnapshot(m_snapshotWatcher->result());
     });
     if (m_authService && m_authService->Session()) {
-        connect(m_authService->Session(), &qianjizn::user::UserSession::AuthStateChanged, this, [this](bool) {
+        connect(m_authService->Session(), &qianjizn::cloudserver::UserSession::AuthStateChanged, this, [this](bool) {
             SyncAuthStateToWeb();
             if (isVisible()) {
                 RefreshCurrentPage();
@@ -171,7 +171,7 @@ void FileManagerView::RefreshCurrentPage()
 
 void FileManagerView::InjectDesktopRuntime()
 {
-    qianjizn::user::InjectDesktopRuntimeIntoView(m_view, m_authService, m_pageUrl.toString());
+    qianjizn::cloudserver::InjectDesktopRuntimeIntoView(m_view, m_authService, m_pageUrl.toString());
 }
 
 void FileManagerView::SyncViewportGeometryNow()

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "user_global.h"
+#include "cloud_server_global.h"
 
 #include <QDialog>
 #include <QString>
@@ -11,9 +11,9 @@ class QCefQuery;
 class QCefView;
 class QWidget;
 
-QJ_NAMESPACE_FIT_USER_BEGIN
+QJ_NAMESPACE_FIT_CLOUD_SERVER_BEGIN
 class UserAuthService;
-QJ_NAMESPACE_FIT_USER_END
+QJ_NAMESPACE_FIT_CLOUD_SERVER_END
 
 class AccountAuthDialog : public QDialog
 {
@@ -21,7 +21,7 @@ class AccountAuthDialog : public QDialog
 
 public:
     explicit AccountAuthDialog(
-        QWidget* parent, const QUrl& authPageUrl, qianjizn::user::UserAuthService* authService);
+        QWidget* parent, const QUrl& authPageUrl, qianjizn::cloudserver::UserAuthService* authService);
     ~AccountAuthDialog() override;
 
 signals:
@@ -43,5 +43,5 @@ private:
     QCefView* m_view { nullptr };
     QUrl m_currentUrl;
     QUrl m_authPageUrl;
-    qianjizn::user::UserAuthService* m_authService { nullptr };
+    qianjizn::cloudserver::UserAuthService* m_authService { nullptr };
 };

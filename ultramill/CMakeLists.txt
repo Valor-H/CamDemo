@@ -21,7 +21,7 @@ target_include_directories(ultramill PUBLIC
 )
 
 target_link_libraries(ultramill PUBLIC
-    user
+    cloud_server
     QCefView
     SARibbonBar::SARibbonBar
     Qt5::Core

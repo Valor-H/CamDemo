@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.19)
 
 if(CMAKE_GENERATOR MATCHES "Visual Studio")
     set(CMAKE_GENERATOR_TOOLSET "v142" CACHE STRING "Platform Toolset" FORCE)
@@ -46,6 +46,6 @@ set_target_properties(libhv PROPERTIES
 
 # 5. modules
 add_subdirectory(project_management)
-add_subdirectory(user)
+add_subdirectory(cloud-server)
 add_subdirectory(ultramill)
 add_subdirectory(qjcam)

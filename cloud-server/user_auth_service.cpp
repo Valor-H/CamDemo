@@ -7,7 +7,7 @@
 #include <QSettings>
 #include <QWidget>
 
-QJ_USING_NAMESPACE_FIT_USER
+QJ_USING_NAMESPACE_FIT_CLOUD_SERVER
 
 namespace
 {
@@ -24,7 +24,7 @@ QString apiBaseStringForClient(const QUrl& u)
 }
 }
 
-QJ_NAMESPACE_FIT_USER_BEGIN
+QJ_NAMESPACE_FIT_CLOUD_SERVER_BEGIN
 
 UserAuthService::UserAuthService(const UserModuleConfig& cfg, QObject* parent)
     : QObject(parent)
@@ -265,4 +265,4 @@ void UserAuthService::TryRefreshUserProfileOnWindowActivate()
     StartDirectUserHydration(token, true);
 }
 
-QJ_NAMESPACE_FIT_USER_END
+QJ_NAMESPACE_FIT_CLOUD_SERVER_END

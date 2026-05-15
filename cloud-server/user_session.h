@@ -1,14 +1,14 @@
 #pragma once
 
-#include "user_global.h"
+#include "cloud_server_global.h"
 
 #include <QObject>
 #include <QString>
 #include <QVariantMap>
 
-QJ_NAMESPACE_FIT_USER_BEGIN
+QJ_NAMESPACE_FIT_CLOUD_SERVER_BEGIN
 
-class USER_EXPORT UserSession final : public QObject
+class CLOUD_SERVER_EXPORT UserSession final : public QObject
 {
     Q_OBJECT
 
@@ -35,4 +35,4 @@ private:
     QVariantMap _currentUser;
 };
 
-QJ_NAMESPACE_FIT_USER_END
+QJ_NAMESPACE_FIT_CLOUD_SERVER_END

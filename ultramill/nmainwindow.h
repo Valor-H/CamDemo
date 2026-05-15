@@ -2,7 +2,7 @@
 
 #include "ultramill_global.h"
 #include <SARibbonBar/SARibbonMainWindow.h>
-#include <user/user_auth_service.h>
+#include <cloud-server/user_auth_service.h>
 
 class QAction;
 class QMenu;
@@ -11,10 +11,10 @@ class QUrl;
 class QWidget;
 class FileManagerView;
 
-QJ_NAMESPACE_FIT_USER_BEGIN
+QJ_NAMESPACE_FIT_CLOUD_SERVER_BEGIN
 class DesktopWebServer;
 class TitleBarUserChip;
-QJ_NAMESPACE_FIT_USER_END
+QJ_NAMESPACE_FIT_CLOUD_SERVER_END
 
 QJ_NAMESPACE_ULTRACAM_ULTRAMILL_BEGIN
 
@@ -27,8 +27,8 @@ public:
     ~NMainWindow() override;
 
     bool OpenFile(const QString& file_name, const QString& backup_file = "", bool silent = false);
-    qianjizn::user::UserAuthService& UserAuth() { return _userAuth; }
-    const qianjizn::user::UserAuthService& UserAuth() const { return _userAuth; }
+    qianjizn::cloudserver::UserAuthService& UserAuth() { return _userAuth; }
+    const qianjizn::cloudserver::UserAuthService& UserAuth() const { return _userAuth; }
 
 protected:
     bool event(QEvent* e) override;
@@ -60,11 +60,11 @@ private:
     QAction* _actionNew { nullptr };
     QAction* _actionOpen { nullptr };
     QAction* _actionDocument { nullptr };
-    qianjizn::user::UserAuthService _userAuth { qianjizn::user::UserModuleConfig {} };
-    qianjizn::user::DesktopWebServer* _desktopWebServer { nullptr };
+    qianjizn::cloudserver::UserAuthService _userAuth { qianjizn::cloudserver::UserModuleConfig {} };
+    qianjizn::cloudserver::DesktopWebServer* _desktopWebServer { nullptr };
     QWidget* _homeWorkspace { nullptr };
     FileManagerView* _fileManagerView { nullptr };
-    qianjizn::user::TitleBarUserChip* _userChip { nullptr };
+    qianjizn::cloudserver::TitleBarUserChip* _userChip { nullptr };
     QMenu* _loginMenu { nullptr };
     QAction* _personalCenterAction { nullptr };
     QAction* _teamAction { nullptr };

@@ -7,7 +7,7 @@
 
 #include <hv/HttpServer.h>
 
-QJ_NAMESPACE_FIT_USER_BEGIN
+QJ_NAMESPACE_FIT_CLOUD_SERVER_BEGIN
 
 struct DesktopWebServer::Private
 {
@@ -117,4 +117,4 @@ QString DesktopWebServer::WebRootPath() const
     return QStringLiteral("D:/Codes/cloud-cam-front/dist/desktop");
 }
 
-QJ_NAMESPACE_FIT_USER_END
+QJ_NAMESPACE_FIT_CLOUD_SERVER_END

@@ -23,7 +23,7 @@ const QString kMethodOnLoginSuccess = QStringLiteral("Desktop.OnLoginSuccess");
 }
 
 AccountAuthDialog::AccountAuthDialog(
-    QWidget* parent, const QUrl& authPageUrl, qianjizn::user::UserAuthService* authService)
+    QWidget* parent, const QUrl& authPageUrl, qianjizn::cloudserver::UserAuthService* authService)
     : QDialog(parent)
     , m_authPageUrl(authPageUrl)
     , m_authService(authService)
@@ -86,7 +86,7 @@ AccountAuthDialog::~AccountAuthDialog()
 
 void AccountAuthDialog::InjectDesktopRuntime()
 {
-    qianjizn::user::InjectDesktopRuntimeIntoView(m_view, m_authService, m_currentUrl.toString());
+    qianjizn::cloudserver::InjectDesktopRuntimeIntoView(m_view, m_authService, m_currentUrl.toString());
 }
 
 bool AccountAuthDialog::IsTrustedUiSource() const

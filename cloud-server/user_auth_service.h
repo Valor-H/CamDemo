@@ -2,7 +2,7 @@
 
 #include "user_module_config.h"
 #include "user_session.h"
-#include "user_global.h"
+#include "cloud_server_global.h"
 
 #include <QElapsedTimer>
 #include <functional>
@@ -13,9 +13,9 @@
 class AuthHttpClient;
 class QWidget;
 
-QJ_NAMESPACE_FIT_USER_BEGIN
+QJ_NAMESPACE_FIT_CLOUD_SERVER_BEGIN
 
-class USER_EXPORT UserAuthService final : public QObject
+class CLOUD_SERVER_EXPORT UserAuthService final : public QObject
 {
     Q_OBJECT
 
@@ -63,4 +63,4 @@ private:
     bool _userHydrationInFlight { false };
 };
 
-QJ_NAMESPACE_FIT_USER_END
+QJ_NAMESPACE_FIT_CLOUD_SERVER_END

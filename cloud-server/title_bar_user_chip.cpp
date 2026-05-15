@@ -16,7 +16,7 @@
 #include <QUrl>
 #include <QSslSocket>
 
-QJ_NAMESPACE_FIT_USER_BEGIN
+QJ_NAMESPACE_FIT_CLOUD_SERVER_BEGIN
 
 namespace
 {
@@ -261,6 +261,5 @@ void TitleBarUserChip::OnAvatarDownloadFinished(QNetworkReply* reply)
     QTimer::singleShot(0, this, [this]() { RelayoutInParent(); });
 }
 
-QJ_NAMESPACE_FIT_USER_END
-
+QJ_NAMESPACE_FIT_CLOUD_SERVER_END
 

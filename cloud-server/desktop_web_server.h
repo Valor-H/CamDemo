@@ -1,15 +1,15 @@
 #pragma once
 
-#include "user_global.h"
+#include "cloud_server_global.h"
 #include <QObject>
 #include <QScopedPointer>
 #include <QString>
 #include <QUrl>
 
-QJ_NAMESPACE_FIT_USER_BEGIN
+QJ_NAMESPACE_FIT_CLOUD_SERVER_BEGIN
 class UserAuthService;
 
-class USER_EXPORT DesktopWebServer final : public QObject
+class CLOUD_SERVER_EXPORT DesktopWebServer final : public QObject
 {
 public:
     explicit DesktopWebServer(UserAuthService* authService, QObject* parent = nullptr);
@@ -32,4 +32,4 @@ private:
     int m_port { 31870 };
 };
 
-QJ_NAMESPACE_FIT_USER_END
+QJ_NAMESPACE_FIT_CLOUD_SERVER_END

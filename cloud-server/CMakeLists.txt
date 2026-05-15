@@ -1,28 +1,28 @@
-# user 模块动态库：登录 UI（QCef）、HTTP（libhv）、会话与 token 持久化
+# cloud-server 模块动态库：登录 UI（QCef）、HTTP（libhv）、会话与 token 持久化
 # 注意：QCefView 在根 CMakeLists.txt 中定义
 
-file(GLOB USER_HEADERS CONFIGURE_DEPENDS
+file(GLOB CLOUD_SERVER_HEADERS CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 )
 
-file(GLOB USER_SOURCES CONFIGURE_DEPENDS
+file(GLOB CLOUD_SERVER_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
 )
 
-add_library(user SHARED
-    ${USER_HEADERS}
-    ${USER_SOURCES}
+add_library(cloud_server SHARED
+    ${CLOUD_SERVER_HEADERS}
+    ${CLOUD_SERVER_SOURCES}
 )
 
-target_include_directories(user PUBLIC
+target_include_directories(cloud_server PUBLIC
     "${CMAKE_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${QCEF_ROOT}/include"
 )
 
-target_compile_definitions(user PRIVATE USER_LIBRARY)
+target_compile_definitions(cloud_server PRIVATE CLOUD_SERVER_LIBRARY)
 
-target_link_libraries(user PUBLIC
+target_link_libraries(cloud_server PUBLIC
     project_management
     Qt5::Core
     Qt5::Gui
@@ -35,10 +35,10 @@ target_link_libraries(user PUBLIC
 )
 
 if(MSVC)
-    target_compile_options(user PRIVATE /utf-8)
+    target_compile_options(cloud_server PRIVATE /utf-8)
 endif()
 
-set_target_properties(user PROPERTIES
+set_target_properties(cloud_server PROPERTIES
     DEBUG_POSTFIX "_d"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"

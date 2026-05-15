@@ -1,14 +1,14 @@
 #pragma once
 
-#include "user_global.h"
+#include "cloud_server_global.h"
 #include <QCefConfig.h>
 #include <QPointer>
 
 class QCefContext;
 
-QJ_NAMESPACE_FIT_USER_BEGIN
+QJ_NAMESPACE_FIT_CLOUD_SERVER_BEGIN
 
-class USER_EXPORT QCefRuntime
+class CLOUD_SERVER_EXPORT QCefRuntime
 {
 public:
     static QCefRuntime& Instance();
@@ -28,4 +28,4 @@ private:
     QPointer<QCefContext> m_context;
 };
 
-QJ_NAMESPACE_FIT_USER_END
+QJ_NAMESPACE_FIT_CLOUD_SERVER_END

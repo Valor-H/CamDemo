@@ -8,7 +8,7 @@
 
 #include <QCefView.h>
 
-QJ_NAMESPACE_FIT_USER_BEGIN
+QJ_NAMESPACE_FIT_CLOUD_SERVER_BEGIN
 
 QJsonObject BuildDesktopRuntimePayload(const UserAuthService* authService)
 {
@@ -68,4 +68,4 @@ bool InjectDesktopRuntimeIntoView(QCefView* view, const UserAuthService* authSer
         QCefView::MainFrameID, BuildDesktopRuntimeInjectionScript(authService), scriptUrl);
 }
 
-QJ_NAMESPACE_FIT_USER_END
+QJ_NAMESPACE_FIT_CLOUD_SERVER_END

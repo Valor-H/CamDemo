@@ -1,6 +1,6 @@
 #pragma once
 
-#include "user_global.h"
+#include "cloud_server_global.h"
 
 #include <QUrl>
 #include <QVariantMap>
@@ -24,16 +24,16 @@ namespace LocalFilesSnapshot
 struct Result;
 }
 
-QJ_NAMESPACE_FIT_USER_BEGIN
+QJ_NAMESPACE_FIT_CLOUD_SERVER_BEGIN
 class UserAuthService;
-QJ_NAMESPACE_FIT_USER_END
+QJ_NAMESPACE_FIT_CLOUD_SERVER_END
 
-class USER_EXPORT FileManagerView : public QWidget
+class CLOUD_SERVER_EXPORT FileManagerView : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit FileManagerView(QWidget* parent, qianjizn::user::UserAuthService* authService, const QUrl& pageUrl);
+    explicit FileManagerView(QWidget* parent, qianjizn::cloudserver::UserAuthService* authService, const QUrl& pageUrl);
     ~FileManagerView() override;
     void RefreshCurrentPage();
     void SyncViewportGeometryNow();
@@ -76,7 +76,7 @@ private:
     QWindow* m_nativeBrowserWindow { nullptr };
     QFutureWatcher<LocalFilesSnapshot::Result>* m_snapshotWatcher { nullptr };
     AuthHttpClient* m_fileHttpClient { nullptr };
-    qianjizn::user::UserAuthService* m_authService { nullptr };
+    qianjizn::cloudserver::UserAuthService* m_authService { nullptr };
     QCefQuery m_pendingLocalFilesQuery;
     bool m_hasPendingLocalFilesQuery { false };
     QCefQuery m_pendingOpenRecentFileQuery;
