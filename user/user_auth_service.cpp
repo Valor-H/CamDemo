@@ -105,7 +105,7 @@ void UserAuthService::BuildExternalWebSsoUrl(const QString& redirectPath, WebSso
         return;
     }
 
-    _authClient->Post(QStringLiteral("/api/auth/exchange/web-ticket"), token, 10,
+    _authClient->Post(QStringLiteral("/api/auth/ticket/exchange"), token, 10,
         [this, redirectPath, cb = std::move(callback)](const AuthHttpClient::Response& resp) mutable {
             if (!resp.networkOk) {
                 cb(QUrl(), QStringLiteral("Network error"));
@@ -266,4 +266,3 @@ void UserAuthService::TryRefreshUserProfileOnWindowActivate()
 }
 
 QJ_NAMESPACE_FIT_USER_END
-
