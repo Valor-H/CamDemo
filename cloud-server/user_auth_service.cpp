@@ -152,7 +152,7 @@ void UserAuthService::FetchCurrentUserDirect(const QString& token, bool allowRef
             }
 
             if (resp.bizCode == 200) {
-                const QVariantMap userMap = resp.data.value(QStringLiteral("user")).toMap();
+                const QVariantMap userMap = resp.data;
                 if (userMap.isEmpty()) {
                     _userHydrationInFlight = false;
                     return;
