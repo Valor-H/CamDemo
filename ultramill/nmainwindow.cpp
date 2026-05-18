@@ -397,10 +397,11 @@ void NMainWindow::ShowFileManagerWorkspace(const QUrl& pageUrl)
     if (!_fileManagerView) {
         _fileManagerView = new FileManagerView(this, &_userAuth, pageUrl);
         connect(_fileManagerView, &FileManagerView::OpenFileRequested, this, [this](const QString& filePath) {
+            ShowHomeWorkspace();
             OpenFile(filePath, QString(), false);
         });
         connect(_fileManagerView, &FileManagerView::OpenRequested, this, &NMainWindow::OnOpen);
-        connect(_fileManagerView, &FileManagerView::NewProjectRequested, this, &NMainWindow::NewProject);
+        connect(_fileManagerView, &FileManagerView::NewProjectRequested, this, &NMainWindow::OnNewProject);
     } else {
         _fileManagerView->RefreshCurrentPage();
     }
@@ -439,6 +440,7 @@ void NMainWindow::OnOpenTeam()
 
 void NMainWindow::OnOpen()
 {
+    ShowHomeWorkspace();
     OpenFile(QString(), QString(), false);
     if (statusBar()) {
         statusBar()->showMessage(tr("Open command requested."), 2000);
@@ -447,11 +449,7 @@ void NMainWindow::OnOpen()
 
 void NMainWindow::OnNewProject()
 {
-    NewProject();
-}
-
-void NMainWindow::NewProject()
-{
+    ShowHomeWorkspace();
     if (statusBar()) {
         statusBar()->showMessage(tr("New project command requested."), 2000);
     }

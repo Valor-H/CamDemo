@@ -44,6 +44,7 @@ constexpr int kDesktopQueryErrorInternal = 500;
 const QString kMethodRequestLocalFiles = QStringLiteral("Desktop.RequestLocalFiles");
 const QString kMethodRequestLogin = QStringLiteral("Desktop.RequestLogin");
 const QString kMethodRequestOpenRecentFile = QStringLiteral("Desktop.RequestOpenRecentFile");
+const QString kMethodRequestOpenFile = QStringLiteral("Desktop.RequestOpenFile");
 const QString kMethodRequestOpen = QStringLiteral("Desktop.RequestOpen");
 const QString kMethodRequestNewProject = QStringLiteral("Desktop.RequestNewProject");
 const QString kEventDesktopOnResume = QStringLiteral("Desktop.OnResume");
@@ -320,6 +321,41 @@ void FileManagerView::OnCefQueryRequest(const QCefQuery& query)
 
     if (method == kMethodRequestOpenRecentFile) {
         HandleOpenRecentFileRequest(payload, &query);
+        return;
+    }
+
+    if (method == kMethodRequestOpenFile) {
+        const int fileType = payload.value(QStringLiteral("fileType")).toInt();
+        const QString source = payload.value(QStringLiteral("source")).toString().trimmed();
+        if (fileType != kQjpFileType || (source != QStringLiteral("local") && source != QStringLiteral("cloud"))) {
+            QCefQuery invalidQuery = query;
+            invalidQuery.reply(false, QStringLiteral("Only desktop QJP files can be opened."), kDesktopQueryErrorBadRequest);
+            m_view->responseQCefQuery(invalidQuery);
+            return;
+        }
+
+        if (source == QStringLiteral("local")) {
+            if (!OpenRecentLocalFile(payload)) {
+                QCefQuery invalidLocalQuery = query;
+                invalidLocalQuery.reply(
+                    false,
+                    QStringLiteral("The local QJP file is invalid or cannot be opened."),
+                    kDesktopQueryErrorBadRequest);
+                m_view->responseQCefQuery(invalidLocalQuery);
+                return;
+            }
+
+            QCefQuery successQuery = query;
+            successQuery.reply(
+                true,
+                QString::fromUtf8(QJsonDocument(QJsonObject {
+                                                    { QStringLiteral("openedPath"), ResolveRecentLocalPath(payload) },
+                                                }).toJson(QJsonDocument::Compact)));
+            m_view->responseQCefQuery(successQuery);
+            return;
+        }
+
+        OpenRecentCloudFile(payload, &query);
         return;
     }
 

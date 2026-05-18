@@ -54,7 +54,6 @@ private:
     void OnOpenFileManager();
     void OnOpenTeam();
     void OnOpen();
-    void NewProject();
     void OnNewProject();
 
     QAction* _actionNew { nullptr };
