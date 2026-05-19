@@ -2,7 +2,7 @@
 
 #include "ultramill_global.h"
 #include <SARibbonBar/SARibbonMainWindow.h>
-#include <cloud-server/user_auth_service.h>
+#include <cloud_server/user_auth_service.h>
 
 class QAction;
 class QMenu;

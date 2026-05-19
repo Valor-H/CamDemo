@@ -1,5 +1,5 @@
 #include "napplication.h"
-#include <cloud-server/q_cef_runtime.h>
+#include <cloud_server/q_cef_runtime.h>
 
 // Q_INIT_RESOURCE cannot be called inside a namespace; use a file-scope helper.
 static void initUltramillResources()

@@ -55,6 +55,6 @@ set_target_properties(libhv PROPERTIES
 
 # 5. modules
 add_subdirectory(project_management)
-add_subdirectory(cloud-server)
+add_subdirectory(cloud_server)
 add_subdirectory(ultramill)
 add_subdirectory(qjcam)

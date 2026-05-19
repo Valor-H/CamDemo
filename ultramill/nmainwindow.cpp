@@ -2,9 +2,9 @@
 #include "home_workspace.h"
 #include "tool_lib_dialog.h"
 
-#include <cloud-server/desktop_web_server.h>
-#include <cloud-server/desktop_web.h>
-#include <cloud-server/file_manager_view.h>
+#include <cloud_server/desktop_web_server.h>
+#include <cloud_server/desktop_web.h>
+#include <cloud_server/file_manager_view.h>
 #include <SARibbonBar/SARibbonBar.h>
 #include <SARibbonBar/SARibbonCategory.h>
 #include <SARibbonBar/SARibbonPanel.h>
@@ -12,7 +12,7 @@
 #include <SARibbonBar/SARibbonSystemButtonBar.h>
 #include <SARibbonBar/SARibbonTabBar.h>
 #include <SARibbonBar/SARibbonTitleIconWidget.h>
-#include <cloud-server/title_bar_user_chip.h>
+#include <cloud_server/title_bar_user_chip.h>
 
 #include <QAbstractButton>
 #include <QAction>

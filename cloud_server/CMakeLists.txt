@@ -1,4 +1,4 @@
-# cloud-server 模块动态库：登录 UI（QCef）、HTTP（libhv）、会话与 token 持久化
+# cloud_server 模块动态库：登录 UI（QCef）、HTTP（libhv）、会话与 token 持久化
 # 注意：QCefView 在根 CMakeLists.txt 中定义
 
 file(GLOB CLOUD_SERVER_HEADERS CONFIGURE_DEPENDS
