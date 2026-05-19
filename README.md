@@ -23,7 +23,7 @@ cam-demo/
     LocalFilesSnapshot.*       # 本地文件快照
     LoginWebAuthHelpers.*      # Web 登录桥接
     MockCamOptions.*           # 可调参数（示�?调试用）
-    user_module_config.h         # user 模块默认配置
+    cloud_server_config.h        # cloud-server 模块默认配置
   resource/                    # 图标与头像资�?  translations/                # Qt Linguist .ts 翻译
 ```
 
@@ -49,7 +49,7 @@ cmake --build build --config Debug
 
 > 首次运行会生成本地设置（`QianJiZN / CamDemo`），并尝试启动本地前端桥接服务�?
 ## 运行时配�?
-默认运行时参数定义在 [user/user_module_config.h](user/user_module_config.h)�?
+默认运行时参数定义在 [cloud-server/cloud_server_config.h](cloud-server/cloud_server_config.h)�?
 | �?| 默认�?| 说明 |
 | --- | --- | --- |
 | `apiBaseUrl` | `http://localhost:8080/` | user-service 后端地址 |

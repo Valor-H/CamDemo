@@ -1,6 +1,6 @@
 #pragma once
 
-#include "user_module_config.h"
+#include "cloud_server_config.h"
 #include "user_session.h"
 #include "cloud_server_global.h"
 
